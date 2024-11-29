@@ -1,0 +1,30 @@
+---
+title: "Kaggle Quarto"
+format: html
+editor: visual
+toc: true
+author:
+  - name: Michael Oyewale
+  - name: Johannes Schwenke
+  - name: Thomas Stojanov
+---
+
+# Set of packages
+
+```{r packages, warning = F, message=F}
+library(tidyverse)
+```
+
+# Load data
+
+Load data with read.csv
+
+```{r load}
+data <- read.csv("data/test.csv")
+```
+
+# Data inspection
+
+```{r inspect}
+data %>% head()
+```
