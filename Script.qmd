@@ -1,12 +1,16 @@
 ---
 title: "Kaggle Quarto"
 format: html
+date: last-modified
 editor: visual
 toc: true
 author:
   - name: Michael Oyewale
+    orcid: 0000-0002-0167-9604
   - name: Johannes Schwenke
+    orcid: 0009-0006-9795-6181
   - name: Thomas Stojanov
+    orcid: 0000-0001-8172-5326
 ---
 
 # Set of packages
