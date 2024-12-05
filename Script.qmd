@@ -16,7 +16,16 @@ author:
 # Set of packages
 
 ```{r packages, warning = F, message=F}
-library(tidyverse)
+if(!require("tidyverse")){
+  install.packages("tidyverse")
+  library("tidyverse")                                                          # packages that you’re likely to use in everyday data analyses: ggplot2, dplyr, tidyr, readr, tibble, stringr, readr, forcats
+}
+
+if(!require("naniar")){
+  install.packages("naniar")
+  library("naniar")                                                          # assess and visualize missingness
+}
+
 ```
 
 # Load data
@@ -24,11 +33,71 @@ library(tidyverse)
 Load data with read.csv
 
 ```{r load}
-data <- read.csv("data/test.csv")
+train <- read.csv("data/train.csv")
+test <- read.csv("data/test.csv")
+
+# Example of what a submission file should look like
+submission_example <- read.csv("gender_submission.csv")
 ```
 
 # Data inspection
 
 ```{r inspect}
-data %>% head()
+train %>% head()
 ```
+
+Structure of data frame
+
+```{r inspect}
+str(train)
+```
+
+```{r}
+summary(train)
+```
+
+Histograms
+
+```{r}
+# Age in years
+# Age is fractional if less than 1. 
+# If the age is estimated, is it in the form of xx.5
+hist(train$Age)
+
+# Passenger fare
+hist(data$Fare)
+
+# Nr of siblings / spouses aboard the Titanic
+# The dataset defines family relations in this way...
+# Sibling = brother, sister, stepbrother, stepsister
+# Spouse = husband, wife (mistresses and fiancés were ignored)
+hist(data$SibSp)
+
+# Nr of parents / children aboard the Titanic
+# The dataset defines family relations in this way...
+# Parent = mother, father
+# Child = daughter, son, stepdaughter, stepson
+# Some children travelled only with a nanny, therefore parch=0 for them.
+hist(data$Parch)
+```
+
+Frequency tables
+
+```{r}
+# For data$Sex
+table(train$Sex, useNA = "ifany")
+
+# For data$Pclass - A proxy for socio-economic status (SES)
+table(train$Pclass, useNA = "ifany")
+
+# For data$Embarked
+table(train$Embarked, useNA = "ifany")
+```
+
+Missing values
+
+```{r}
+gg_miss_var(train, show_pct = TRUE)
+```
+
+# Data preprocessing 
