@@ -18,7 +18,7 @@ author:
 ```{r packages, warning = F, message=F}
 if(!require("tidyverse")){
   install.packages("tidyverse")
-  library("tidyverse")                                                          # packages that you’re likely to use in everyday data analyses: ggplot2, dplyr, tidyr, readr, tibble, stringr, readr, forcats
+  library("tidyverse")                                                       # packages that you’re likely to use in everyday data analyses: ggplot2, dplyr, tidyr, readr, tibble, stringr, readr, forcats
 }
 
 if(!require("naniar")){
@@ -100,4 +100,4 @@ Missing values
 gg_miss_var(train, show_pct = TRUE)
 ```
 
-# Data preprocessing 
+# Data preprocessing
