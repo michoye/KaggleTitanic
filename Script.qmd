@@ -13,7 +13,25 @@ author:
     orcid: 0000-0001-8172-5326
 ---
 
-# Set of packages
+## TODO
+
+-   Split cabin
+
+-   Think about imputation / try first imputation
+
+-   Choice of pred model
+
+## Log
+
+### 2024-12-06
+
+-   Data overview
+
+-   Reformatting
+
+## Setup
+
+### Set of packages
 
 ```{r packages}
 #| warning: false
@@ -49,7 +67,7 @@ if(!require("tidymodels")){
 }
 ```
 
-# Load data
+### Load data
 
 Load data with read.csv
 
@@ -66,7 +84,7 @@ train <- train |>
          Embarked = if_else(Embarked == "", NA, Embarked)) 
 ```
 
-# Data inspection
+## Data inspection
 
 ```{r inspect}
 train |> head()
@@ -138,7 +156,7 @@ gg_miss_var(train, show_pct = TRUE)
 naplot(naclus(train))
 ```
 
-# Data preprocessing
+## Data preprocessing
 
 ### Split cabin from room number
 
