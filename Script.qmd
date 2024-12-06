@@ -15,17 +15,38 @@ author:
 
 # Set of packages
 
-```{r packages, warning = F, message=F}
+```{r packages}
+#| warning: false
+#| message: false
+
 if(!require("tidyverse")){
   install.packages("tidyverse")
-  library("tidyverse")                                                       # packages that you’re likely to use in everyday data analyses: ggplot2, dplyr, tidyr, readr, tibble, stringr, readr, forcats
+  library("tidyverse")                                                       
+  # packages that you’re likely to use in everyday data analyses: ggplot2, dplyr, tidyr, readr, tibble, stringr, readr, forcats
 }
 
 if(!require("naniar")){
   install.packages("naniar")
-  library("naniar")                                                          # assess and visualize missingness
+  library("naniar")                                                          
+  # assess and visualize missingness
 }
 
+if(!require("Hmisc")){
+  install.packages("Hmisc")
+  library("Hmisc")                                                          
+  # assess and visualize missingness
+}
+
+if(!require("skimr")){
+  install.packages("skimr")
+  library("skimr")                                                          
+}
+
+if(!require("tidymodels")){
+  install.packages("tidymodels")
+  library("tidymodels")                                                          
+  # modelling
+}
 ```
 
 # Load data
@@ -37,13 +58,20 @@ train <- read.csv("data/train.csv")
 test <- read.csv("data/test.csv")
 
 # Example of what a submission file should look like
-submission_example <- read.csv("gender_submission.csv")
+submission_example <- read.csv("data/gender_submission.csv")
+
+train <- train |> 
+  mutate(across(c("Survived", "Pclass", "Sex", "Embarked"), as.factor),
+         Cabin = if_else(Cabin == "", NA, Cabin),
+         Embarked = if_else(Embarked == "", NA, Embarked)) 
 ```
 
 # Data inspection
 
 ```{r inspect}
-train %>% head()
+train |> head()
+
+train |> pull(Ticket) #what to the prefixes mean?
 ```
 
 Structure of data frame
@@ -54,6 +82,7 @@ str(train)
 
 ```{r}
 summary(train)
+skim(train)
 ```
 
 Histograms
@@ -62,23 +91,24 @@ Histograms
 # Age in years
 # Age is fractional if less than 1. 
 # If the age is estimated, is it in the form of xx.5
+# Move age_estimated to new column ?
 hist(train$Age)
 
 # Passenger fare
-hist(data$Fare)
+hist(train$Fare, breaks = 50)
 
 # Nr of siblings / spouses aboard the Titanic
 # The dataset defines family relations in this way...
 # Sibling = brother, sister, stepbrother, stepsister
 # Spouse = husband, wife (mistresses and fiancés were ignored)
-hist(data$SibSp)
+hist(train$SibSp)
 
 # Nr of parents / children aboard the Titanic
 # The dataset defines family relations in this way...
 # Parent = mother, father
 # Child = daughter, son, stepdaughter, stepson
 # Some children travelled only with a nanny, therefore parch=0 for them.
-hist(data$Parch)
+hist(train$Parch)
 ```
 
 Frequency tables
@@ -92,12 +122,24 @@ table(train$Pclass, useNA = "ifany")
 
 # For data$Embarked
 table(train$Embarked, useNA = "ifany")
+
+#for outcome (death)
+table(train$Survived, useNA = "ifany")
+
+
 ```
 
 Missing values
 
 ```{r}
 gg_miss_var(train, show_pct = TRUE)
+
+
+naplot(naclus(train))
 ```
 
 # Data preprocessing
+
+### Split cabin from room number
+
+### Look at relationships cabin vs. class etc
