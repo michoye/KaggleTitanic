@@ -89,7 +89,93 @@ train <- train |>
 ```{r inspect}
 train |> head()
 
-train |> pull(Ticket) #what to the prefixes mean?
+train |> pull(Ticket) #what do the prefixes mean? Created a new column with just these prefixes to study at a later point
+# Some tickets have 
+
+#Extracts prefixes to new column Ticket_pre
+train <- train %>%
+  mutate(Ticket_pre = ifelse(str_detect(Ticket, " "), 
+                           str_extract(Ticket, "^[^ ]+"), 
+                           NA))
+
+#Deletes prefixes from column Ticket
+train <- train |> 
+  mutate(Ticket = ifelse(str_detect(Ticket, " "), 
+                         str_remove(Ticket, "^[^ ]+ "), 
+                         Ticket))
+
+# Some last issues remain
+train <- train %>%
+  mutate(
+    Ticket_pre = ifelse(
+      str_detect(Ticket, "\\s"),
+      paste0(Ticket_pre, " ", str_extract(Ticket, "^[^\\s]+")),
+      Ticket_pre
+    ),
+    Ticket = ifelse(
+      str_detect(Ticket, "\\s"),
+      str_extract(Ticket, "(?<=\\s).*"),
+      Ticket
+    )
+  ) # Some last prefixes weren't extracted. 
+
+train <- train %>%
+  mutate(
+    # Handle cases where Ticket equals "LINE"
+    Ticket_pre = ifelse(Ticket == "LINE", "LINE", 
+                        ifelse(str_detect(Ticket, "\\s"),
+                               paste0(Ticket_pre, " ", str_extract(Ticket, "^[^\\s]+")),
+                               Ticket_pre)),
+    Ticket = ifelse(Ticket == "LINE", NA, 
+                    ifelse(str_detect(Ticket, "\\s"),
+                           str_extract(Ticket, "(?<=\\s).*"),
+                           Ticket)),
+    # Convert Ticket to numeric
+    Ticket = as.numeric(Ticket)
+  )
+
+
+
+
+train |> pull(Ticket_pre) #See below for possible categorization and freq count
+
+train |> pull(Cabin) #See below for possible categorization and freq count
+train <- train |>
+  mutate(Cabin_sector = ifelse(!is.na(Cabin), str_extract(Cabin, "[A-GT](?=[^A-GT]*$)"), NA)) # Extracts last occurrence of letter in Cabin string
+# --> Sector is looked at below together with Pclass
+
+train <- train %>%
+  mutate(CabinNumber = ifelse(!is.na(Cabin), #only process non-NA values
+                              sapply(str_extract_all(Cabin, "\\d+"), function(x) { 
+                                # Iterates through the list of extracted numbers (x)
+                                # "B23 B25 B27" → c("23", "25", "27")
+                                if (length(x) > 0) {
+                                  max(as.numeric(x)) # Calculate max() and convert to numeric format
+                                } else {
+                                  NA
+                                }
+                              }), 
+                              NA)) #Extracted highest number from Cabin; NA if no number
+
+train |> arrange(Name) |> pull(Name) #There are some additional names listed for some patients - Why is this? 
+# (...) These names don't refer to other patients on the ship - don't know what these are
+# \"...\" - most probably a nickname
+# (\"...\") - don't know
+
+
+
+# What to do with sibsp / parch?
+# Should we have variable 'Family' (0/1) instead of sibsp / parch? 
+# Or is one better for survival than the other? 
+# E.g., will I be safer if I have siblings? Or will I be at a higher risk if I have a child to care after?
+
+# sibsp: The dataset defines family relations in this way...
+  # Sibling = brother, sister, stepbrother, stepsister
+  # Spouse = husband, wife (mistresses and fiancés were ignored)
+# parch: The dataset defines family relations in this way...
+  # Parent = mother, father
+  # Child = daughter, son, stepdaughter, stepson
+  # Some children travelled only with a nanny, therefore parch=0 for them.
 ```
 
 Structure of data frame
@@ -144,7 +230,22 @@ table(train$Embarked, useNA = "ifany")
 #for outcome (death)
 table(train$Survived, useNA = "ifany")
 
+#for outcome (cabin)
+table(train$Cabin, useNA = "ifany")
 
+#for newly created column 'Prefixes'
+table(train$Ticket_pre, useNA = "ifany")
+# Could theoretically clean this column.. 
+# A./5., A.5., A/5, A/5. --> A/5
+# SOTON/O.Q., SOTON/O2, SOTON/OQ, STON/O, STON/O2. --> SOTON 
+# and so on... and see whether it correlates with anything... 
+# Care: 665 missing values
+
+train |> count(Pclass, Cabin_sector)
+# Pclass doesn't necessarily separate Cabin_sector
+
+train |> count(Pclass, Ticket_pre)
+# No real relation here either - check again
 ```
 
 Missing values
