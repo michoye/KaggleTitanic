@@ -1,6 +1,8 @@
 ---
 title: "Kaggle Quarto"
-format: html
+format: 
+  html:
+    df-print: paged
 date: last-modified
 editor: visual
 toc: true
@@ -13,29 +15,29 @@ author:
     orcid: 0000-0001-8172-5326
 ---
 
-## TODO
+# TODO
 
 -   Split cabin
-
+-   Do a common train + test dataset to avoid duplicating the code?
 -   Think about imputation / try first imputation
-
 -   Choice of pred model
 
-## Log
+# Log
 
-### 2024-12-06
+## 2024-12-06
 
 -   Data overview
-
 -   Reformatting
 
-## Setup
+## 2024-12-13
 
-### Set of packages
+-   Reformatting and cleaning Quarto document & chunks
+-   Added df-print to the Quarto file above, the html output reads much better
 
 ```{r packages}
 #| warning: false
 #| message: false
+#| include: false
 
 if(!require("tidyverse")){
   install.packages("tidyverse")
@@ -67,97 +69,247 @@ if(!require("tidymodels")){
 }
 ```
 
-### Load data
+# Introduction and setup {#sec-introduction}
 
-Load data with read.csv
+In the present Quarto document, we report our commonly developed solution to obtain predictions as part of a Kaggle competition (<https://www.kaggle.com/competitions/titanic/code>).
 
-```{r load}
-train <- read.csv("data/train.csv")
-test <- read.csv("data/test.csv")
+## Expected output {#sec-expected-output}
 
+In short, the aim of the competition is to predict, as accurately as possible, the survival status of passengers of Titanic using individual data (*i.e.*, name, age, sex, socio-economic status, etc...).
+
+For this, Kaggle competitors have to upload a dataset composed of two variables: - `PassengerId`: describes the passenger Id - `Survived`: describes the observed survival status of the passenger. This corresponds to the outcome to be predicted using the developed prediction model.
+
+We load the example provided by the Kaggle competition authors using `read.csv()`:
+
+```{r load submission}
 # Example of what a submission file should look like
 submission_example <- read.csv("data/gender_submission.csv")
-
-train <- train |> 
-  mutate(across(c("Survived", "Pclass", "Sex", "Embarked"), as.factor),
-         Cabin = if_else(Cabin == "", NA, Cabin),
-         Embarked = if_else(Embarked == "", NA, Embarked)) 
+head(submission_example, n = 10)
 ```
 
-## Data inspection
+## Available datasets
 
-```{r inspect}
-train |> head()
+Two datasets are made readily available by the Kaggle competition authors.
 
-train |> pull(Ticket) #what do the prefixes mean? Created a new column with just these prefixes to study at a later point
-# Some tickets have 
+### Test set
 
-#Extracts prefixes to new column Ticket_pre
-train <- train %>%
-  mutate(Ticket_pre = ifelse(str_detect(Ticket, " "), 
-                           str_extract(Ticket, "^[^ ]+"), 
-                           NA))
+The set of `PassengerId` expected in the output (see [-@sec-expected-output]) actually corresponds to the set of `PassengerId` of the so-called `test` dataset.
 
-#Deletes prefixes from column Ticket
-train <- train |> 
-  mutate(Ticket = ifelse(str_detect(Ticket, " "), 
-                         str_remove(Ticket, "^[^ ]+ "), 
-                         Ticket))
+The `test` dataset is usually the dataset used to evaluate the validity of a prediction model. We load it using `read.csv()`:
 
-# Some last issues remain
-train <- train %>%
+```{r load test}
+test <- read.csv("data/test.csv") # test data
+test |> head(n = 10)
+```
+
+### Train set
+
+When we develop a prediction model, we usually train the prediction model using the so-called `train` data set. We load this data using again `read.csv()`:
+
+```{r load train}
+train <- read.csv("data/train.csv") # train data
+train |> head(n = 10)
+```
+
+**Remarks**: It looks like the `train` and `test` datasets are composed of the same number of variables. It is not necessarily always the case. Indeed, while variables could be available in a given data set, they are not always available in another data set. Therefore, each variable used in a prediction model should be carefully inspected both for availability and completeness in the two `training` and the `test` sets. We provide a more detailed inspection in the following section.
+
+### Bind train and test
+
+```{r bind train and test}
+# Create a list of data frames
+df_list <- list(train = train, test = test)
+
+# Use bind_rows with .id argument
+data <- bind_rows(df_list, .id = "source")
+```
+
+```{r inspect data}
+# Print data
+head(data)
+```
+
+# Data inspection
+
+In the following chunk, using `head()`, we first have a look at the dataset, and the variables composing it, and more specifically we want to check their format:
+
+```{r inspect train}
+data |> head()
+```
+
+In the following chunk, using `str()`, we have a look at the dataset, and the variables composing it, and more specifically we want to check their format:
+
+```{r inspect2 train}
+str(data)
+```
+
+**Remarks**:
+
+-   `Survived`, `Pclass`, `Sex` and `Embarked` are currently stored as integers or characters, while they should be factor variables. We address this issue in @sec-convert.
+
+-   `Cabin` and `Embarked` variables contain empty character strings. We address this issue in @sec-replace.
+
+-   `Ticket` variable seem to be messy but might contain important information. We address this issue in @sec-inspection-Ticket.
+
+We provide an initial variables distribution using `summary()`:
+
+```{r inspect3 train}
+summary(data)
+```
+
+We provide an initial description of the number of missing values., with `gg_miss_var()`:
+
+```{r}
+gg_miss_var(data, show_pct = TRUE)
+```
+
+**Remarks:** - `Survived` has a hgh number of missing. This is expected, as the data from `test` was merged with `train`. - `Age` has a high number of missing.
+
+# Data management
+
+```{r}
+data1 <- data
+```
+
+We describe various data management steps.
+
+## Convert variables to factor {#sec-convert}
+
+```{r data-management-converttofactor}
+data1 <- 
+  data1 |> 
   mutate(
-    Ticket_pre = ifelse(
-      str_detect(Ticket, "\\s"),
-      paste0(Ticket_pre, " ", str_extract(Ticket, "^[^\\s]+")),
-      Ticket_pre
-    ),
-    Ticket = ifelse(
-      str_detect(Ticket, "\\s"),
-      str_extract(Ticket, "(?<=\\s).*"),
-      Ticket
-    )
-  ) # Some last prefixes weren't extracted. 
-
-train <- train %>%
-  mutate(
-    # Handle cases where Ticket equals "LINE"
-    Ticket_pre = ifelse(Ticket == "LINE", "LINE", 
-                        ifelse(str_detect(Ticket, "\\s"),
-                               paste0(Ticket_pre, " ", str_extract(Ticket, "^[^\\s]+")),
-                               Ticket_pre)),
-    Ticket = ifelse(Ticket == "LINE", NA, 
-                    ifelse(str_detect(Ticket, "\\s"),
-                           str_extract(Ticket, "(?<=\\s).*"),
-                           Ticket)),
-    # Convert Ticket to numeric
-    Ticket = as.numeric(Ticket)
+    across(c("Survived", "Pclass", "Sex", "Embarked"), 
+           as.factor
+           )
   )
+```
 
+## Replace empty strings {#sec-replace}
 
+Here, we replace empty strings in `Cabin` and `Embarked` with proper NA values.
 
+```{r data1-management-replace-empty}
+data1 <- 
+  data1 |> 
+  dplyr::mutate(
+    Cabin = if_else(Cabin == "", NA, Cabin), 
+    Embarked = if_else(Embarked == "", NA, Embarked)
+    )
+```
 
-train |> pull(Ticket_pre) #See below for possible categorization and freq count
+We provide again a description of the number of missing values., with `gg_miss_var()`:
 
-train |> pull(Cabin) #See below for possible categorization and freq count
-train <- train |>
+```{r}
+gg_miss_var(data1, show_pct = TRUE)
+```
+
+**Remarks:**
+
+-   `Survived`: still has a high number of missing. This is still expected, as the data from `test` was merged with `train`. 
+- `Cabin`: has a high proportion of missing
+- `Age`: has a high number of missing.
+
+## Inspection of `Ticket` variable {#sec-inspection-Ticket}
+
+We provide first an inspection of `Ticket`:
+
+```{r inspection-ticket-head}
+data1 |> pull(Ticket) |> head(n = 20)
+```
+
+**Remarks:** While it seems the data are not structured, it looks like there are two parts in the `Ticket` variable: a prefix and a ticket number. Let's isolate them first.
+
+### Extraction prefixes and ticket numbers
+
+```{r}
+data1 <- 
+  data1 |> 
+  dplyr::mutate(
+    Ticket_Nr = str_extract(Ticket, "\\b\\d{3,7}\\b"), # extract a chain of 3 to 7 digits
+    Ticket_Pre = str_remove(Ticket, "\\b\\d{3,7}\\b") # drop the ticket chain number
+  ) |> 
+  dplyr::mutate(
+    Ticket_Pre = str_trim(Ticket_Pre) # drop the spaces
+  ) |> 
+  dplyr::mutate(
+    Ticket_Pre =
+      if_else(
+        Ticket_Pre == "", NA, Ticket_Pre # consider empty strings as missing
+      )
+  )
+```
+
+**Remarks:** - What do the prefixes mean?
+
+#### Relation between prefix and Cabin?
+
+Is there any association between ticket pre and the type of Cabin?
+
+```{r}
+data1 |> 
+  dplyr::select(
+    PassengerId,
+    Cabin,
+    Ticket_Pre,
+  )|> 
+  group_by(Ticket_Pre,
+           Cabin) |> 
+  arrange(Cabin) |> 
+  count() |> 
+  dplyr::mutate(
+    prop = n/sum(n)
+  )
+```
+
+```{r}
+data1 |> 
+  group_by(
+    Pclass,
+    Ticket_Pre
+  ) |> 
+  dplyr::count()
+```
+
+```{r inspect11}
+data1 |> pull(Ticket_Pre) |> head(n = 20) #See below for possible categorization and freq count
+```
+
+## Inspection of `Cabin` variable {#sec-inspection-Cabin}
+
+```{r}
+data1 <- 
+  data1 |>
   mutate(Cabin_sector = ifelse(!is.na(Cabin), str_extract(Cabin, "[A-GT](?=[^A-GT]*$)"), NA)) # Extracts last occurrence of letter in Cabin string
 # --> Sector is looked at below together with Pclass
+```
 
-train <- train %>%
-  mutate(CabinNumber = ifelse(!is.na(Cabin), #only process non-NA values
-                              sapply(str_extract_all(Cabin, "\\d+"), function(x) { 
-                                # Iterates through the list of extracted numbers (x)
-                                # "B23 B25 B27" → c("23", "25", "27")
-                                if (length(x) > 0) {
-                                  max(as.numeric(x)) # Calculate max() and convert to numeric format
-                                } else {
-                                  NA
-                                }
-                              }), 
-                              NA)) #Extracted highest number from Cabin; NA if no number
+```{r}
+data1 <- 
+  data1 %>%
+  mutate(CabinNumber = 
+           ifelse(!is.na(Cabin), #only process non-NA values
+                  sapply(str_extract_all(Cabin, "\\d+"), function(x) { 
+                    # Iterates through the list of extracted numbers (x)
+                    # "B23 B25 B27" → c("23", "25", "27")  
+                    if (length(x) > 0) {
+                      max(as.numeric(x)) # Calculate max() and convert to numeric format
+                    } else {NA
+                        }
+                    }
+                    ),
+                  NA
+                  )
+         ) #Extracted highest number from Cabin; NA if no number
+```
 
-train |> arrange(Name) |> pull(Name) #There are some additional names listed for some patients - Why is this? 
+```{r}
+data1$CabinNumber |> head(n = 10)
+```
+
+## Inspection of `Name` variable {#sec-inspection-Name}
+
+```{r inspect13}
+data1 |> arrange(Name) |> head(Name, n = 10) #There are some additional names listed for some patients - Why is this? 
 # (...) These names don't refer to other patients on the ship - don't know what these are
 # \"...\" - most probably a nickname
 # (\"...\") - don't know
@@ -169,95 +321,151 @@ train |> arrange(Name) |> pull(Name) #There are some additional names listed for
 # Or is one better for survival than the other? 
 # E.g., will I be safer if I have siblings? Or will I be at a higher risk if I have a child to care after?
 
-# sibsp: The dataset defines family relations in this way...
+# sibsp: The data1set defines family relations in this way...
   # Sibling = brother, sister, stepbrother, stepsister
   # Spouse = husband, wife (mistresses and fiancés were ignored)
-# parch: The dataset defines family relations in this way...
+# parch: The data1set defines family relations in this way...
   # Parent = mother, father
   # Child = daughter, son, stepdaughter, stepson
   # Some children travelled only with a nanny, therefore parch=0 for them.
 ```
 
-Structure of data frame
+## Data visualization
 
-```{r inspect}
-str(train)
-```
+## Inspection of age
 
 ```{r}
-summary(train)
-skim(train)
+data1 |> # need to address the missing values
+  filter(
+    !is.na(Survived)
+  ) |> 
+  ggplot(aes(x = Age)) +
+  geom_histogram(binwidth = 2,
+                 alpha = 0.5,
+                 position = "identity")
 ```
 
-Histograms
+### Histograms
+
+```{r}
+data1 |> 
+  filter(
+    !is.na(Survived)
+  ) |> 
+  ggplot(aes(x = Age, 
+             fill = Survived,
+             color = Survived)) +
+  geom_histogram(binwidth = 2,
+                 alpha = 0.5,
+                 position = "identity")
+```
 
 ```{r}
 # Age in years
 # Age is fractional if less than 1. 
 # If the age is estimated, is it in the form of xx.5
 # Move age_estimated to new column ?
-hist(train$Age)
+hist(data1$Age)
 
 # Passenger fare
-hist(train$Fare, breaks = 50)
+hist(data1$Fare, breaks = 50)
 
 # Nr of siblings / spouses aboard the Titanic
-# The dataset defines family relations in this way...
+# The data1set defines family relations in this way...
 # Sibling = brother, sister, stepbrother, stepsister
 # Spouse = husband, wife (mistresses and fiancés were ignored)
-hist(train$SibSp)
+hist(data1$SibSp)
 
 # Nr of parents / children aboard the Titanic
-# The dataset defines family relations in this way...
+# The data1set defines family relations in this way...
 # Parent = mother, father
 # Child = daughter, son, stepdaughter, stepson
 # Some children travelled only with a nanny, therefore parch=0 for them.
-hist(train$Parch)
+hist(data1$Parch)
 ```
 
-Frequency tables
+### Frequency tables
 
 ```{r}
-# For data$Sex
-table(train$Sex, useNA = "ifany")
+# For data1$Sex
+table(data1$Sex, useNA = "ifany")
 
-# For data$Pclass - A proxy for socio-economic status (SES)
-table(train$Pclass, useNA = "ifany")
+# For data1$Pclass - A proxy for socio-economic status (SES)
+table(data1$Pclass, useNA = "ifany")
 
-# For data$Embarked
-table(train$Embarked, useNA = "ifany")
+# For data1$Embarked
+table(data1$Embarked, useNA = "ifany")
 
 #for outcome (death)
-table(train$Survived, useNA = "ifany")
+table(data1$Survived, useNA = "ifany")
 
 #for outcome (cabin)
-table(train$Cabin, useNA = "ifany")
+table(data1$Cabin, useNA = "ifany")
 
 #for newly created column 'Prefixes'
-table(train$Ticket_pre, useNA = "ifany")
+table(data1$Ticket_pre, useNA = "ifany")
 # Could theoretically clean this column.. 
 # A./5., A.5., A/5, A/5. --> A/5
 # SOTON/O.Q., SOTON/O2, SOTON/OQ, STON/O, STON/O2. --> SOTON 
 # and so on... and see whether it correlates with anything... 
 # Care: 665 missing values
+```
 
-train |> count(Pclass, Cabin_sector)
+```{r}
+data1 |> 
+  dplyr::select(
+    PassengerId,
+    Pclass,
+    Cabin,
+    Cabin_sector,
+    Ticket,
+    Ticket_Nr,
+    Ticket_Pre,
+  ) |> 
+  dplyr::group_by(
+    Pclass
+  ) |> 
+  count(
+    Cabin_sector
+  ) |> 
+  mutate(
+    prop = n/sum(n)
+  )
+```
+
+```{r}
+data1 |> count(Pclass, Cabin_sector)
 # Pclass doesn't necessarily separate Cabin_sector
 
-train |> count(Pclass, Ticket_pre)
+data1 |> count(Pclass, Ticket_Pre)
 # No real relation here either - check again
 ```
 
-Missing values
-
 ```{r}
-gg_miss_var(train, show_pct = TRUE)
-
-
-naplot(naclus(train))
+data1 |> 
+  group_by(Pclass) |> 
+  count(Ticket_Pre) |> 
+  arrange(desc(n))
 ```
 
-## Data preprocessing
+```{r}
+data1 |>
+  group_by(Cabin_sector) |> 
+  count(Ticket_Pre)
+```
+
+# Missing values
+
+```{r}
+gg_miss_var(data1, show_pct = TRUE)
+
+
+naplot(naclus(data1))
+```
+
+# Imputation ?
+
+# Data preprocessing
 
 ### Split cabin from room number
 

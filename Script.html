@@ -9,7 +9,7 @@
 <meta name="author" content="Michael Oyewale">
 <meta name="author" content="Johannes Schwenke">
 <meta name="author" content="Thomas Stojanov">
-<meta name="dcterms.date" content="2024-11-29">
+<meta name="dcterms.date" content="2024-12-13">
 
 <title>Kaggle Quarto</title>
 <style>
@@ -71,6 +71,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="Script_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="Script_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="Script_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="Script_files/libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+
+<script src="Script_files/libs/pagedtable-1.1/js/pagedtable.js"></script>
+
 
 
 </head>
@@ -83,9 +87,47 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#set-of-packages" id="toc-set-of-packages" class="nav-link active" data-scroll-target="#set-of-packages">Set of packages</a></li>
-  <li><a href="#load-data" id="toc-load-data" class="nav-link" data-scroll-target="#load-data">Load data</a></li>
+  <li><a href="#todo" id="toc-todo" class="nav-link active" data-scroll-target="#todo">TODO</a></li>
+  <li><a href="#log" id="toc-log" class="nav-link" data-scroll-target="#log">Log</a>
+  <ul class="collapse">
+  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section">2024-12-06</a></li>
+  <li><a href="#section-1" id="toc-section-1" class="nav-link" data-scroll-target="#section-1">2024-12-13</a></li>
+  </ul></li>
+  <li><a href="#sec-introduction" id="toc-sec-introduction" class="nav-link" data-scroll-target="#sec-introduction">Introduction and setup</a>
+  <ul class="collapse">
+  <li><a href="#sec-expected-output" id="toc-sec-expected-output" class="nav-link" data-scroll-target="#sec-expected-output">Expected output</a></li>
+  <li><a href="#available-datasets" id="toc-available-datasets" class="nav-link" data-scroll-target="#available-datasets">Available datasets</a>
+  <ul class="collapse">
+  <li><a href="#test-set" id="toc-test-set" class="nav-link" data-scroll-target="#test-set">Test set</a></li>
+  <li><a href="#train-set" id="toc-train-set" class="nav-link" data-scroll-target="#train-set">Train set</a></li>
+  <li><a href="#bind-train-and-test" id="toc-bind-train-and-test" class="nav-link" data-scroll-target="#bind-train-and-test">Bind train and test</a></li>
+  </ul></li>
+  </ul></li>
   <li><a href="#data-inspection" id="toc-data-inspection" class="nav-link" data-scroll-target="#data-inspection">Data inspection</a></li>
+  <li><a href="#data-management" id="toc-data-management" class="nav-link" data-scroll-target="#data-management">Data management</a>
+  <ul class="collapse">
+  <li><a href="#sec-convert" id="toc-sec-convert" class="nav-link" data-scroll-target="#sec-convert">Convert variables to factor</a></li>
+  <li><a href="#sec-replace" id="toc-sec-replace" class="nav-link" data-scroll-target="#sec-replace">Replace empty strings</a></li>
+  <li><a href="#sec-inspection-Ticket" id="toc-sec-inspection-Ticket" class="nav-link" data-scroll-target="#sec-inspection-Ticket">Inspection of <code>Ticket</code> variable</a>
+  <ul class="collapse">
+  <li><a href="#extraction-prefixes-and-ticket-numbers" id="toc-extraction-prefixes-and-ticket-numbers" class="nav-link" data-scroll-target="#extraction-prefixes-and-ticket-numbers">Extraction prefixes and ticket numbers</a></li>
+  </ul></li>
+  <li><a href="#sec-inspection-Cabin" id="toc-sec-inspection-Cabin" class="nav-link" data-scroll-target="#sec-inspection-Cabin">Inspection of <code>Cabin</code> variable</a></li>
+  <li><a href="#sec-inspection-Name" id="toc-sec-inspection-Name" class="nav-link" data-scroll-target="#sec-inspection-Name">Inspection of <code>Name</code> variable</a></li>
+  <li><a href="#data-visualization" id="toc-data-visualization" class="nav-link" data-scroll-target="#data-visualization">Data visualization</a></li>
+  <li><a href="#inspection-of-age" id="toc-inspection-of-age" class="nav-link" data-scroll-target="#inspection-of-age">Inspection of age</a>
+  <ul class="collapse">
+  <li><a href="#histograms" id="toc-histograms" class="nav-link" data-scroll-target="#histograms">Histograms</a></li>
+  <li><a href="#frequency-tables" id="toc-frequency-tables" class="nav-link" data-scroll-target="#frequency-tables">Frequency tables</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#missing-values" id="toc-missing-values" class="nav-link" data-scroll-target="#missing-values">Missing values</a></li>
+  <li><a href="#imputation" id="toc-imputation" class="nav-link" data-scroll-target="#imputation">Imputation ?</a></li>
+  <li><a href="#data-preprocessing" id="toc-data-preprocessing" class="nav-link" data-scroll-target="#data-preprocessing">Data preprocessing</a>
+  <ul class="collapse">
+  <li><a href="#split-cabin-from-room-number" id="toc-split-cabin-from-room-number" class="nav-link" data-scroll-target="#split-cabin-from-room-number">Split cabin from room number</a></li>
+  <li><a href="#look-at-relationships-cabin-vs.-class-etc" id="toc-look-at-relationships-cabin-vs.-class-etc" class="nav-link" data-scroll-target="#look-at-relationships-cabin-vs.-class-etc">Look at relationships cabin vs.&nbsp;class etc</a></li>
+  </ul></li>
   </ul>
 </nav>
 </div>
@@ -112,7 +154,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">November 29, 2024</p>
+      <p class="date">December 13, 2024</p>
     </div>
   </div>
   
@@ -124,40 +166,751 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="set-of-packages" class="level1">
-<h1>Set of packages</h1>
+<section id="todo" class="level1">
+<h1>TODO</h1>
+<ul>
+<li>Split cabin</li>
+<li>Do a common train + test dataset to avoid duplicating the code?</li>
+<li>Think about imputation / try first imputation</li>
+<li>Choice of pred model</li>
+</ul>
+</section>
+<section id="log" class="level1">
+<h1>Log</h1>
+<section id="section" class="level2">
+<h2 class="anchored" data-anchor-id="section">2024-12-06</h2>
+<ul>
+<li>Data overview</li>
+<li>Reformatting</li>
+</ul>
+</section>
+<section id="section-1" class="level2">
+<h2 class="anchored" data-anchor-id="section-1">2024-12-13</h2>
+<ul>
+<li>Reformatting and cleaning Quarto document &amp; chunks</li>
+<li>Added df-print to the Quarto file above, the html output reads much better</li>
+</ul>
+</section>
+</section>
+<section id="sec-introduction" class="level1">
+<h1>Introduction and setup</h1>
+<p>In the present Quarto document, we report our commonly developed solution to obtain predictions as part of a Kaggle competition (<a href="https://www.kaggle.com/competitions/titanic/code" class="uri">https://www.kaggle.com/competitions/titanic/code</a>).</p>
+<section id="sec-expected-output" class="level2">
+<h2 class="anchored" data-anchor-id="sec-expected-output">Expected output</h2>
+<p>In short, the aim of the competition is to predict, as accurately as possible, the survival status of passengers of Titanic using individual data (<em>i.e.</em>, name, age, sex, socio-economic status, etc…).</p>
+<p>For this, Kaggle competitors have to upload a dataset composed of two variables: - <code>PassengerId</code>: describes the passenger Id - <code>Survived</code>: describes the observed survival status of the passenger. This corresponds to the outcome to be predicted using the developed prediction model.</p>
+<p>We load the example provided by the Kaggle competition authors using <code>read.csv()</code>:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Example of what a submission file should look like</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>submission_example <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/gender_submission.csv"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(submission_example, <span class="at">n =</span> <span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["PassengerId"],"name":[1],"type":["int"],"align":["right"]},{"label":["Survived"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"892","2":"0","_rn_":"1"},{"1":"893","2":"1","_rn_":"2"},{"1":"894","2":"0","_rn_":"3"},{"1":"895","2":"0","_rn_":"4"},{"1":"896","2":"1","_rn_":"5"},{"1":"897","2":"0","_rn_":"6"},{"1":"898","2":"1","_rn_":"7"},{"1":"899","2":"0","_rn_":"8"},{"1":"900","2":"1","_rn_":"9"},{"1":"901","2":"0","_rn_":"10"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
 </div>
 </section>
-<section id="load-data" class="level1">
-<h1>Load data</h1>
-<p>Load data with read.csv</p>
+<section id="available-datasets" class="level2">
+<h2 class="anchored" data-anchor-id="available-datasets">Available datasets</h2>
+<p>Two datasets are made readily available by the Kaggle competition authors.</p>
+<section id="test-set" class="level3">
+<h3 class="anchored" data-anchor-id="test-set">Test set</h3>
+<p>The set of <code>PassengerId</code> expected in the output (see <a href="#sec-expected-output" class="quarto-xref">3.1</a>) actually corresponds to the set of <code>PassengerId</code> of the so-called <code>test</code> dataset.</p>
+<p>The <code>test</code> dataset is usually the dataset used to evaluate the validity of a prediction model. We load it using <code>read.csv()</code>:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/test.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>test <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/test.csv"</span>) <span class="co"># test data</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>test <span class="sc">|&gt;</span> <span class="fu">head</span>(<span class="at">n =</span> <span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["PassengerId"],"name":[1],"type":["int"],"align":["right"]},{"label":["Pclass"],"name":[2],"type":["int"],"align":["right"]},{"label":["Name"],"name":[3],"type":["chr"],"align":["left"]},{"label":["Sex"],"name":[4],"type":["chr"],"align":["left"]},{"label":["Age"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["SibSp"],"name":[6],"type":["int"],"align":["right"]},{"label":["Parch"],"name":[7],"type":["int"],"align":["right"]},{"label":["Ticket"],"name":[8],"type":["chr"],"align":["left"]},{"label":["Fare"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["Cabin"],"name":[10],"type":["chr"],"align":["left"]},{"label":["Embarked"],"name":[11],"type":["chr"],"align":["left"]}],"data":[{"1":"892","2":"3","3":"Kelly, Mr. James","4":"male","5":"34.5","6":"0","7":"0","8":"330911","9":"7.8292","10":"","11":"Q","_rn_":"1"},{"1":"893","2":"3","3":"Wilkes, Mrs. James (Ellen Needs)","4":"female","5":"47.0","6":"1","7":"0","8":"363272","9":"7.0000","10":"","11":"S","_rn_":"2"},{"1":"894","2":"2","3":"Myles, Mr. Thomas Francis","4":"male","5":"62.0","6":"0","7":"0","8":"240276","9":"9.6875","10":"","11":"Q","_rn_":"3"},{"1":"895","2":"3","3":"Wirz, Mr. Albert","4":"male","5":"27.0","6":"0","7":"0","8":"315154","9":"8.6625","10":"","11":"S","_rn_":"4"},{"1":"896","2":"3","3":"Hirvonen, Mrs. Alexander (Helga E Lindqvist)","4":"female","5":"22.0","6":"1","7":"1","8":"3101298","9":"12.2875","10":"","11":"S","_rn_":"5"},{"1":"897","2":"3","3":"Svensson, Mr. Johan Cervin","4":"male","5":"14.0","6":"0","7":"0","8":"7538","9":"9.2250","10":"","11":"S","_rn_":"6"},{"1":"898","2":"3","3":"Connolly, Miss. Kate","4":"female","5":"30.0","6":"0","7":"0","8":"330972","9":"7.6292","10":"","11":"Q","_rn_":"7"},{"1":"899","2":"2","3":"Caldwell, Mr. Albert Francis","4":"male","5":"26.0","6":"1","7":"1","8":"248738","9":"29.0000","10":"","11":"S","_rn_":"8"},{"1":"900","2":"3","3":"Abrahim, Mrs. Joseph (Sophie Halaut Easu)","4":"female","5":"18.0","6":"0","7":"0","8":"2657","9":"7.2292","10":"","11":"C","_rn_":"9"},{"1":"901","2":"3","3":"Davies, Mr. John Samuel","4":"male","5":"21.0","6":"2","7":"0","8":"A/4 48871","9":"24.1500","10":"","11":"S","_rn_":"10"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
 </div>
+</div>
+</div>
+</section>
+<section id="train-set" class="level3">
+<h3 class="anchored" data-anchor-id="train-set">Train set</h3>
+<p>When we develop a prediction model, we usually train the prediction model using the so-called <code>train</code> data set. We load this data using again <code>read.csv()</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>train <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/train.csv"</span>) <span class="co"># train data</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>train <span class="sc">|&gt;</span> <span class="fu">head</span>(<span class="at">n =</span> <span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["PassengerId"],"name":[1],"type":["int"],"align":["right"]},{"label":["Survived"],"name":[2],"type":["int"],"align":["right"]},{"label":["Pclass"],"name":[3],"type":["int"],"align":["right"]},{"label":["Name"],"name":[4],"type":["chr"],"align":["left"]},{"label":["Sex"],"name":[5],"type":["chr"],"align":["left"]},{"label":["Age"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["SibSp"],"name":[7],"type":["int"],"align":["right"]},{"label":["Parch"],"name":[8],"type":["int"],"align":["right"]},{"label":["Ticket"],"name":[9],"type":["chr"],"align":["left"]},{"label":["Fare"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["Cabin"],"name":[11],"type":["chr"],"align":["left"]},{"label":["Embarked"],"name":[12],"type":["chr"],"align":["left"]}],"data":[{"1":"1","2":"0","3":"3","4":"Braund, Mr. Owen Harris","5":"male","6":"22","7":"1","8":"0","9":"A/5 21171","10":"7.2500","11":"","12":"S","_rn_":"1"},{"1":"2","2":"1","3":"1","4":"Cumings, Mrs. John Bradley (Florence Briggs Thayer)","5":"female","6":"38","7":"1","8":"0","9":"PC 17599","10":"71.2833","11":"C85","12":"C","_rn_":"2"},{"1":"3","2":"1","3":"3","4":"Heikkinen, Miss. Laina","5":"female","6":"26","7":"0","8":"0","9":"STON/O2. 3101282","10":"7.9250","11":"","12":"S","_rn_":"3"},{"1":"4","2":"1","3":"1","4":"Futrelle, Mrs. Jacques Heath (Lily May Peel)","5":"female","6":"35","7":"1","8":"0","9":"113803","10":"53.1000","11":"C123","12":"S","_rn_":"4"},{"1":"5","2":"0","3":"3","4":"Allen, Mr. William Henry","5":"male","6":"35","7":"0","8":"0","9":"373450","10":"8.0500","11":"","12":"S","_rn_":"5"},{"1":"6","2":"0","3":"3","4":"Moran, Mr. James","5":"male","6":"NA","7":"0","8":"0","9":"330877","10":"8.4583","11":"","12":"Q","_rn_":"6"},{"1":"7","2":"0","3":"1","4":"McCarthy, Mr. Timothy J","5":"male","6":"54","7":"0","8":"0","9":"17463","10":"51.8625","11":"E46","12":"S","_rn_":"7"},{"1":"8","2":"0","3":"3","4":"Palsson, Master. Gosta Leonard","5":"male","6":"2","7":"3","8":"1","9":"349909","10":"21.0750","11":"","12":"S","_rn_":"8"},{"1":"9","2":"1","3":"3","4":"Johnson, Mrs. Oscar W (Elisabeth Vilhelmina Berg)","5":"female","6":"27","7":"0","8":"2","9":"347742","10":"11.1333","11":"","12":"S","_rn_":"9"},{"1":"10","2":"1","3":"2","4":"Nasser, Mrs. Nicholas (Adele Achem)","5":"female","6":"14","7":"1","8":"0","9":"237736","10":"30.0708","11":"","12":"C","_rn_":"10"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p><strong>Remarks</strong>: It looks like the <code>train</code> and <code>test</code> datasets are composed of the same number of variables. It is not necessarily always the case. Indeed, while variables could be available in a given data set, they are not always available in another data set. Therefore, each variable used in a prediction model should be carefully inspected both for availability and completeness in the two <code>training</code> and the <code>test</code> sets. We provide a more detailed inspection in the following section.</p>
+</section>
+<section id="bind-train-and-test" class="level3">
+<h3 class="anchored" data-anchor-id="bind-train-and-test">Bind train and test</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a list of data frames</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>df_list <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">train =</span> train, <span class="at">test =</span> test)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Use bind_rows with .id argument</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(df_list, <span class="at">.id =</span> <span class="st">"source"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Print data</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["source"],"name":[1],"type":["chr"],"align":["left"]},{"label":["PassengerId"],"name":[2],"type":["int"],"align":["right"]},{"label":["Survived"],"name":[3],"type":["int"],"align":["right"]},{"label":["Pclass"],"name":[4],"type":["int"],"align":["right"]},{"label":["Name"],"name":[5],"type":["chr"],"align":["left"]},{"label":["Sex"],"name":[6],"type":["chr"],"align":["left"]},{"label":["Age"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["SibSp"],"name":[8],"type":["int"],"align":["right"]},{"label":["Parch"],"name":[9],"type":["int"],"align":["right"]},{"label":["Ticket"],"name":[10],"type":["chr"],"align":["left"]},{"label":["Fare"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["Cabin"],"name":[12],"type":["chr"],"align":["left"]},{"label":["Embarked"],"name":[13],"type":["chr"],"align":["left"]}],"data":[{"1":"train","2":"1","3":"0","4":"3","5":"Braund, Mr. Owen Harris","6":"male","7":"22","8":"1","9":"0","10":"A/5 21171","11":"7.2500","12":"","13":"S","_rn_":"1"},{"1":"train","2":"2","3":"1","4":"1","5":"Cumings, Mrs. John Bradley (Florence Briggs Thayer)","6":"female","7":"38","8":"1","9":"0","10":"PC 17599","11":"71.2833","12":"C85","13":"C","_rn_":"2"},{"1":"train","2":"3","3":"1","4":"3","5":"Heikkinen, Miss. Laina","6":"female","7":"26","8":"0","9":"0","10":"STON/O2. 3101282","11":"7.9250","12":"","13":"S","_rn_":"3"},{"1":"train","2":"4","3":"1","4":"1","5":"Futrelle, Mrs. Jacques Heath (Lily May Peel)","6":"female","7":"35","8":"1","9":"0","10":"113803","11":"53.1000","12":"C123","13":"S","_rn_":"4"},{"1":"train","2":"5","3":"0","4":"3","5":"Allen, Mr. William Henry","6":"male","7":"35","8":"0","9":"0","10":"373450","11":"8.0500","12":"","13":"S","_rn_":"5"},{"1":"train","2":"6","3":"0","4":"3","5":"Moran, Mr. James","6":"male","7":"NA","8":"0","9":"0","10":"330877","11":"8.4583","12":"","13":"Q","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+</section>
+</section>
 </section>
 <section id="data-inspection" class="level1">
 <h1>Data inspection</h1>
+<p>In the following chunk, using <code>head()</code>, we first have a look at the dataset, and the variables composing it, and more specifically we want to check their format:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span> <span class="fu">head</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">|&gt;</span> <span class="fu">head</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["source"],"name":[1],"type":["chr"],"align":["left"]},{"label":["PassengerId"],"name":[2],"type":["int"],"align":["right"]},{"label":["Survived"],"name":[3],"type":["int"],"align":["right"]},{"label":["Pclass"],"name":[4],"type":["int"],"align":["right"]},{"label":["Name"],"name":[5],"type":["chr"],"align":["left"]},{"label":["Sex"],"name":[6],"type":["chr"],"align":["left"]},{"label":["Age"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["SibSp"],"name":[8],"type":["int"],"align":["right"]},{"label":["Parch"],"name":[9],"type":["int"],"align":["right"]},{"label":["Ticket"],"name":[10],"type":["chr"],"align":["left"]},{"label":["Fare"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["Cabin"],"name":[12],"type":["chr"],"align":["left"]},{"label":["Embarked"],"name":[13],"type":["chr"],"align":["left"]}],"data":[{"1":"train","2":"1","3":"0","4":"3","5":"Braund, Mr. Owen Harris","6":"male","7":"22","8":"1","9":"0","10":"A/5 21171","11":"7.2500","12":"","13":"S","_rn_":"1"},{"1":"train","2":"2","3":"1","4":"1","5":"Cumings, Mrs. John Bradley (Florence Briggs Thayer)","6":"female","7":"38","8":"1","9":"0","10":"PC 17599","11":"71.2833","12":"C85","13":"C","_rn_":"2"},{"1":"train","2":"3","3":"1","4":"3","5":"Heikkinen, Miss. Laina","6":"female","7":"26","8":"0","9":"0","10":"STON/O2. 3101282","11":"7.9250","12":"","13":"S","_rn_":"3"},{"1":"train","2":"4","3":"1","4":"1","5":"Futrelle, Mrs. Jacques Heath (Lily May Peel)","6":"female","7":"35","8":"1","9":"0","10":"113803","11":"53.1000","12":"C123","13":"S","_rn_":"4"},{"1":"train","2":"5","3":"0","4":"3","5":"Allen, Mr. William Henry","6":"male","7":"35","8":"0","9":"0","10":"373450","11":"8.0500","12":"","13":"S","_rn_":"5"},{"1":"train","2":"6","3":"0","4":"3","5":"Moran, Mr. James","6":"male","7":"NA","8":"0","9":"0","10":"330877","11":"8.4583","12":"","13":"Q","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p>In the following chunk, using <code>str()</code>, we have a look at the dataset, and the variables composing it, and more specifically we want to check their format:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  PassengerId Pclass                                         Name    Sex  Age
-1         892      3                             Kelly, Mr. James   male 34.5
-2         893      3             Wilkes, Mrs. James (Ellen Needs) female 47.0
-3         894      2                    Myles, Mr. Thomas Francis   male 62.0
-4         895      3                             Wirz, Mr. Albert   male 27.0
-5         896      3 Hirvonen, Mrs. Alexander (Helga E Lindqvist) female 22.0
-6         897      3                   Svensson, Mr. Johan Cervin   male 14.0
-  SibSp Parch  Ticket    Fare Cabin Embarked
-1     0     0  330911  7.8292              Q
-2     1     0  363272  7.0000              S
-3     0     0  240276  9.6875              Q
-4     0     0  315154  8.6625              S
-5     1     1 3101298 12.2875              S
-6     0     0    7538  9.2250              S</code></pre>
+<pre><code>'data.frame':   1309 obs. of  13 variables:
+ $ source     : chr  "train" "train" "train" "train" ...
+ $ PassengerId: int  1 2 3 4 5 6 7 8 9 10 ...
+ $ Survived   : int  0 1 1 1 0 0 0 0 1 1 ...
+ $ Pclass     : int  3 1 3 1 3 3 1 3 3 2 ...
+ $ Name       : chr  "Braund, Mr. Owen Harris" "Cumings, Mrs. John Bradley (Florence Briggs Thayer)" "Heikkinen, Miss. Laina" "Futrelle, Mrs. Jacques Heath (Lily May Peel)" ...
+ $ Sex        : chr  "male" "female" "female" "female" ...
+ $ Age        : num  22 38 26 35 35 NA 54 2 27 14 ...
+ $ SibSp      : int  1 1 0 1 0 0 0 3 0 1 ...
+ $ Parch      : int  0 0 0 0 0 0 0 1 2 0 ...
+ $ Ticket     : chr  "A/5 21171" "PC 17599" "STON/O2. 3101282" "113803" ...
+ $ Fare       : num  7.25 71.28 7.92 53.1 8.05 ...
+ $ Cabin      : chr  "" "C85" "" "C123" ...
+ $ Embarked   : chr  "S" "C" "S" "S" ...</code></pre>
 </div>
 </div>
+<p><strong>Remarks</strong>:</p>
+<ul>
+<li><p><code>Survived</code>, <code>Pclass</code>, <code>Sex</code> and <code>Embarked</code> are currently stored as integers or characters, while they should be factor variables. We address this issue in <a href="#sec-convert" class="quarto-xref">Section&nbsp;5.1</a>.</p></li>
+<li><p><code>Cabin</code> and <code>Embarked</code> variables contain empty character strings. We address this issue in <a href="#sec-replace" class="quarto-xref">Section&nbsp;5.2</a>.</p></li>
+<li><p><code>Ticket</code> variable seem to be messy but might contain important information. We address this issue in <a href="#sec-inspection-Ticket" class="quarto-xref">Section&nbsp;5.3</a>.</p></li>
+</ul>
+<p>We provide an initial variables distribution using <code>summary()</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    source           PassengerId      Survived          Pclass     
+ Length:1309        Min.   :   1   Min.   :0.0000   Min.   :1.000  
+ Class :character   1st Qu.: 328   1st Qu.:0.0000   1st Qu.:2.000  
+ Mode  :character   Median : 655   Median :0.0000   Median :3.000  
+                    Mean   : 655   Mean   :0.3838   Mean   :2.295  
+                    3rd Qu.: 982   3rd Qu.:1.0000   3rd Qu.:3.000  
+                    Max.   :1309   Max.   :1.0000   Max.   :3.000  
+                                   NA's   :418                     
+     Name               Sex                 Age            SibSp       
+ Length:1309        Length:1309        Min.   : 0.17   Min.   :0.0000  
+ Class :character   Class :character   1st Qu.:21.00   1st Qu.:0.0000  
+ Mode  :character   Mode  :character   Median :28.00   Median :0.0000  
+                                       Mean   :29.88   Mean   :0.4989  
+                                       3rd Qu.:39.00   3rd Qu.:1.0000  
+                                       Max.   :80.00   Max.   :8.0000  
+                                       NA's   :263                     
+     Parch          Ticket               Fare            Cabin          
+ Min.   :0.000   Length:1309        Min.   :  0.000   Length:1309       
+ 1st Qu.:0.000   Class :character   1st Qu.:  7.896   Class :character  
+ Median :0.000   Mode  :character   Median : 14.454   Mode  :character  
+ Mean   :0.385                      Mean   : 33.295                     
+ 3rd Qu.:0.000                      3rd Qu.: 31.275                     
+ Max.   :9.000                      Max.   :512.329                     
+                                    NA's   :1                           
+   Embarked        
+ Length:1309       
+ Class :character  
+ Mode  :character  
+                   
+                   
+                   
+                   </code></pre>
+</div>
+</div>
+<p>We provide an initial description of the number of missing values., with <code>gg_miss_var()</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gg_miss_var</span>(data, <span class="at">show_pct =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Script_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Remarks:</strong> - <code>Survived</code> has a hgh number of missing. This is expected, as the data from <code>test</code> was merged with <code>train</code>. - <code>Age</code> has a high number of missing.</p>
+</section>
+<section id="data-management" class="level1">
+<h1>Data management</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>data1 <span class="ot">&lt;-</span> data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We describe various data management steps.</p>
+<section id="sec-convert" class="level2">
+<h2 class="anchored" data-anchor-id="sec-convert">Convert variables to factor</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>data1 <span class="ot">&lt;-</span> </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  data1 <span class="sc">|&gt;</span> </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">across</span>(<span class="fu">c</span>(<span class="st">"Survived"</span>, <span class="st">"Pclass"</span>, <span class="st">"Sex"</span>, <span class="st">"Embarked"</span>), </span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>           as.factor</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>           )</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="sec-replace" class="level2">
+<h2 class="anchored" data-anchor-id="sec-replace">Replace empty strings</h2>
+<p>Here, we replace empty strings in <code>Cabin</code> and <code>Embarked</code> with proper NA values.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>data1 <span class="ot">&lt;-</span> </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  data1 <span class="sc">|&gt;</span> </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Cabin =</span> <span class="fu">if_else</span>(Cabin <span class="sc">==</span> <span class="st">""</span>, <span class="cn">NA</span>, Cabin), </span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Embarked =</span> <span class="fu">if_else</span>(Embarked <span class="sc">==</span> <span class="st">""</span>, <span class="cn">NA</span>, Embarked)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We provide again a description of the number of missing values., with <code>gg_miss_var()</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gg_miss_var</span>(data1, <span class="at">show_pct =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Script_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Remarks:</strong></p>
+<ul>
+<li><code>Survived</code>: still has a high number of missing. This is still expected, as the data from <code>test</code> was merged with <code>train</code>.</li>
+<li><code>Cabin</code>: has a high proportion of missing</li>
+<li><code>Age</code>: has a high number of missing.</li>
+</ul>
+</section>
+<section id="sec-inspection-Ticket" class="level2">
+<h2 class="anchored" data-anchor-id="sec-inspection-Ticket">Inspection of <code>Ticket</code> variable</h2>
+<p>We provide first an inspection of <code>Ticket</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>data1 <span class="sc">|&gt;</span> <span class="fu">pull</span>(Ticket) <span class="sc">|&gt;</span> <span class="fu">head</span>(<span class="at">n =</span> <span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "A/5 21171"        "PC 17599"         "STON/O2. 3101282" "113803"          
+ [5] "373450"           "330877"           "17463"            "349909"          
+ [9] "347742"           "237736"           "PP 9549"          "113783"          
+[13] "A/5. 2151"        "347082"           "350406"           "248706"          
+[17] "382652"           "244373"           "345763"           "2649"            </code></pre>
+</div>
+</div>
+<p><strong>Remarks:</strong> While it seems the data are not structured, it looks like there are two parts in the <code>Ticket</code> variable: a prefix and a ticket number. Let’s isolate them first.</p>
+<section id="extraction-prefixes-and-ticket-numbers" class="level3">
+<h3 class="anchored" data-anchor-id="extraction-prefixes-and-ticket-numbers">Extraction prefixes and ticket numbers</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>data1 <span class="ot">&lt;-</span> </span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  data1 <span class="sc">|&gt;</span> </span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Ticket_Nr =</span> <span class="fu">str_extract</span>(Ticket, <span class="st">"</span><span class="sc">\\</span><span class="st">b</span><span class="sc">\\</span><span class="st">d{3,7}</span><span class="sc">\\</span><span class="st">b"</span>), <span class="co"># extract a chain of 3 to 7 digits</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Ticket_Pre =</span> <span class="fu">str_remove</span>(Ticket, <span class="st">"</span><span class="sc">\\</span><span class="st">b</span><span class="sc">\\</span><span class="st">d{3,7}</span><span class="sc">\\</span><span class="st">b"</span>) <span class="co"># drop the ticket chain number</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">Ticket_Pre =</span> <span class="fu">str_trim</span>(Ticket_Pre) <span class="co"># drop the spaces</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">Ticket_Pre =</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">if_else</span>(</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>        Ticket_Pre <span class="sc">==</span> <span class="st">""</span>, <span class="cn">NA</span>, Ticket_Pre <span class="co"># consider empty strings as missing</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>Remarks:</strong> - What do the prefixes mean?</p>
+<section id="relation-between-prefix-and-cabin" class="level4">
+<h4 class="anchored" data-anchor-id="relation-between-prefix-and-cabin">Relation between prefix and Cabin?</h4>
+<p>Is there any association between ticket pre and the type of Cabin?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>data1 <span class="sc">|&gt;</span> </span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    PassengerId,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    Cabin,</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    Ticket_Pre,</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  )<span class="sc">|&gt;</span> </span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Ticket_Pre,</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>           Cabin) <span class="sc">|&gt;</span> </span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(Cabin) <span class="sc">|&gt;</span> </span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">prop =</span> n<span class="sc">/</span><span class="fu">sum</span>(n)</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Ticket_Pre"],"name":[1],"type":["chr"],"align":["left"]},{"label":["Cabin"],"name":[2],"type":["chr"],"align":["left"]},{"label":["n"],"name":[3],"type":["int"],"align":["right"]},{"label":["prop"],"name":[4],"type":["dbl"],"align":["right"]}],"data":[{"1":"A. 2.","2":"NA","3":"1","4":"1"},{"1":"A./5.","2":"NA","3":"3","4":"1"},{"1":"A.5.","2":"NA","3":"3","4":"1"},{"1":"A/4","2":"NA","3":"6","4":"1"},{"1":"A/4.","2":"NA","3":"3","4":"1"},{"1":"A/5","2":"NA","3":"12","4":"1"},{"1":"A/5.","2":"NA","3":"10","4":"1"},{"1":"A/S","2":"NA","3":"1","4":"1"},{"1":"A4.","2":"NA","3":"1","4":"1"},{"1":"AQ/3.","2":"NA","3":"1","4":"1"},{"1":"AQ/4","2":"NA","3":"1","4":"1"},{"1":"C","2":"NA","3":"8","4":"1"},{"1":"C.A.","2":"F33","3":"2","4":"1"},{"1":"C.A.","2":"NA","3":"44","4":"1"},{"1":"C.A./SOTON","2":"NA","3":"1","4":"1"},{"1":"CA","2":"NA","3":"10","4":"1"},{"1":"CA.","2":"NA","3":"12","4":"1"},{"1":"F.C.","2":"B71","3":"2","4":"1"},{"1":"F.C.","2":"NA","3":"1","4":"1"},{"1":"F.C.C.","2":"NA","3":"9","4":"1"},{"1":"Fa","2":"NA","3":"1","4":"1"},{"1":"LINE","2":"NA","3":"4","4":"1"},{"1":"LP","2":"NA","3":"1","4":"1"},{"1":"P/PP","2":"NA","3":"2","4":"1"},{"1":"PC","2":"A11","3":"1","4":"1"},{"1":"PC","2":"A18","3":"1","4":"1"},{"1":"PC","2":"A20","3":"1","4":"1"},{"1":"PC","2":"A24","3":"1","4":"1"},{"1":"PC","2":"A29","3":"1","4":"1"},{"1":"PC","2":"A5","3":"1","4":"1"},{"1":"PC","2":"A9","3":"1","4":"1"},{"1":"PC","2":"B10","3":"1","4":"1"},{"1":"PC","2":"B101","3":"1","4":"1"},{"1":"PC","2":"B35","3":"2","4":"1"},{"1":"PC","2":"B4","3":"1","4":"1"},{"1":"PC","2":"B51 B53 B55","3":"2","4":"1"},{"1":"PC","2":"B57 B59 B63 B66","3":"5","4":"1"},{"1":"PC","2":"B58 B60","3":"3","4":"1"},{"1":"PC","2":"B61","3":"1","4":"1"},{"1":"PC","2":"B78","3":"2","4":"1"},{"1":"PC","2":"B80","3":"1","4":"1"},{"1":"PC","2":"B82 B84","3":"1","4":"1"},{"1":"PC","2":"B86","3":"1","4":"1"},{"1":"PC","2":"C105","3":"1","4":"1"},{"1":"PC","2":"C118","3":"1","4":"1"},{"1":"PC","2":"C125","3":"2","4":"1"},{"1":"PC","2":"C32","3":"2","4":"1"},{"1":"PC","2":"C45","3":"1","4":"1"},{"1":"PC","2":"C49","3":"1","4":"1"},{"1":"PC","2":"C55 C57","3":"2","4":"1"},{"1":"PC","2":"C62 C64","3":"2","4":"1"},{"1":"PC","2":"C65","3":"2","4":"1"},{"1":"PC","2":"C85","3":"2","4":"1"},{"1":"PC","2":"C86","3":"2","4":"1"},{"1":"PC","2":"C90","3":"1","4":"1"},{"1":"PC","2":"C91","3":"1","4":"1"},{"1":"PC","2":"C95","3":"1","4":"1"},{"1":"PC","2":"C97","3":"1","4":"1"},{"1":"PC","2":"C99","3":"1","4":"1"},{"1":"PC","2":"D10 D12","3":"2","4":"1"},{"1":"PC","2":"D28","3":"2","4":"1"},{"1":"PC","2":"D33","3":"2","4":"1"},{"1":"PC","2":"D43","3":"1","4":"1"},{"1":"PC","2":"D49","3":"1","4":"1"},{"1":"PC","2":"E24","3":"2","4":"1"},{"1":"PC","2":"E25","3":"2","4":"1"},{"1":"PC","2":"E36","3":"1","4":"1"},{"1":"PC","2":"E45","3":"1","4":"1"},{"1":"PC","2":"E49","3":"1","4":"1"},{"1":"PC","2":"E52","3":"1","4":"1"},{"1":"PC","2":"NA","3":"25","4":"1"},{"1":"PP","2":"G6","3":"3","4":"1"},{"1":"PP","2":"NA","3":"1","4":"1"},{"1":"S.C./A.4.","2":"NA","3":"1","4":"1"},{"1":"S.C./PARIS","2":"NA","3":"3","4":"1"},{"1":"S.O./P.P.","2":"NA","3":"3","4":"1"},{"1":"S.O./P.P. 2","2":"NA","3":"2","4":"1"},{"1":"S.O./P.P. 3","2":"E77","3":"1","4":"1"},{"1":"S.O./P.P. 3","2":"NA","3":"1","4":"1"},{"1":"S.O.C.","2":"NA","3":"7","4":"1"},{"1":"S.O.P.","2":"NA","3":"1","4":"1"},{"1":"S.P.","2":"NA","3":"1","4":"1"},{"1":"S.W./PP","2":"NA","3":"1","4":"1"},{"1":"SC","2":"NA","3":"2","4":"1"},{"1":"SC/A.3","2":"NA","3":"1","4":"1"},{"1":"SC/A4","2":"NA","3":"1","4":"1"},{"1":"SC/AH","2":"NA","3":"4","4":"1"},{"1":"SC/AH Basle","2":"D","3":"1","4":"1"},{"1":"SC/PARIS","2":"D38","3":"1","4":"1"},{"1":"SC/PARIS","2":"NA","3":"10","4":"1"},{"1":"SC/Paris","2":"D","3":"1","4":"1"},{"1":"SC/Paris","2":"NA","3":"4","4":"1"},{"1":"SCO/W","2":"NA","3":"1","4":"1"},{"1":"SO/C","2":"NA","3":"1","4":"1"},{"1":"SOTON/O.Q.","2":"E10","3":"1","4":"1"},{"1":"SOTON/O.Q.","2":"NA","3":"15","4":"1"},{"1":"SOTON/O2","2":"NA","3":"3","4":"1"},{"1":"SOTON/OQ","2":"NA","3":"8","4":"1"},{"1":"STON/O 2.","2":"NA","3":"14","4":"1"},{"1":"STON/O2.","2":"NA","3":"7","4":"1"},{"1":"STON/OQ.","2":"NA","3":"1","4":"1"},{"1":"SW/PP","2":"NA","3":"1","4":"1"},{"1":"W./C.","2":"F33","3":"1","4":"1"},{"1":"W./C.","2":"NA","3":"13","4":"1"},{"1":"W.E.P.","2":"E31","3":"2","4":"1"},{"1":"W/C","2":"NA","3":"1","4":"1"},{"1":"WE/P","2":"B22","3":"2","4":"1"},{"1":"NA","2":"A10","3":"1","4":"1"},{"1":"NA","2":"A14","3":"1","4":"1"},{"1":"NA","2":"A16","3":"1","4":"1"},{"1":"NA","2":"A19","3":"1","4":"1"},{"1":"NA","2":"A21","3":"1","4":"1"},{"1":"NA","2":"A23","3":"1","4":"1"},{"1":"NA","2":"A26","3":"1","4":"1"},{"1":"NA","2":"A31","3":"1","4":"1"},{"1":"NA","2":"A32","3":"1","4":"1"},{"1":"NA","2":"A34","3":"3","4":"1"},{"1":"NA","2":"A36","3":"1","4":"1"},{"1":"NA","2":"A6","3":"1","4":"1"},{"1":"NA","2":"A7","3":"1","4":"1"},{"1":"NA","2":"B102","3":"1","4":"1"},{"1":"NA","2":"B11","3":"1","4":"1"},{"1":"NA","2":"B18","3":"2","4":"1"},{"1":"NA","2":"B19","3":"1","4":"1"},{"1":"NA","2":"B20","3":"2","4":"1"},{"1":"NA","2":"B24","3":"1","4":"1"},{"1":"NA","2":"B26","3":"1","4":"1"},{"1":"NA","2":"B28","3":"2","4":"1"},{"1":"NA","2":"B3","3":"1","4":"1"},{"1":"NA","2":"B30","3":"1","4":"1"},{"1":"NA","2":"B36","3":"1","4":"1"},{"1":"NA","2":"B37","3":"1","4":"1"},{"1":"NA","2":"B38","3":"1","4":"1"},{"1":"NA","2":"B39","3":"1","4":"1"},{"1":"NA","2":"B41","3":"2","4":"1"},{"1":"NA","2":"B42","3":"1","4":"1"},{"1":"NA","2":"B45","3":"2","4":"1"},{"1":"NA","2":"B49","3":"2","4":"1"},{"1":"NA","2":"B5","3":"2","4":"1"},{"1":"NA","2":"B50","3":"1","4":"1"},{"1":"NA","2":"B51 B53 B55","3":"1","4":"1"},{"1":"NA","2":"B52 B54 B56","3":"1","4":"1"},{"1":"NA","2":"B69","3":"2","4":"1"},{"1":"NA","2":"B73","3":"1","4":"1"},{"1":"NA","2":"B77","3":"2","4":"1"},{"1":"NA","2":"B79","3":"1","4":"1"},{"1":"NA","2":"B94","3":"1","4":"1"},{"1":"NA","2":"B96 B98","3":"4","4":"1"},{"1":"NA","2":"C101","3":"3","4":"1"},{"1":"NA","2":"C103","3":"1","4":"1"},{"1":"NA","2":"C104","3":"1","4":"1"},{"1":"NA","2":"C106","3":"2","4":"1"},{"1":"NA","2":"C110","3":"1","4":"1"},{"1":"NA","2":"C111","3":"1","4":"1"},{"1":"NA","2":"C116","3":"2","4":"1"},{"1":"NA","2":"C123","3":"2","4":"1"},{"1":"NA","2":"C124","3":"2","4":"1"},{"1":"NA","2":"C126","3":"2","4":"1"},{"1":"NA","2":"C128","3":"1","4":"1"},{"1":"NA","2":"C130","3":"1","4":"1"},{"1":"NA","2":"C132","3":"1","4":"1"},{"1":"NA","2":"C148","3":"1","4":"1"},{"1":"NA","2":"C2","3":"2","4":"1"},{"1":"NA","2":"C22 C26","3":"4","4":"1"},{"1":"NA","2":"C23 C25 C27","3":"6","4":"1"},{"1":"NA","2":"C28","3":"1","4":"1"},{"1":"NA","2":"C30","3":"1","4":"1"},{"1":"NA","2":"C31","3":"2","4":"1"},{"1":"NA","2":"C39","3":"1","4":"1"},{"1":"NA","2":"C46","3":"2","4":"1"},{"1":"NA","2":"C47","3":"1","4":"1"},{"1":"NA","2":"C50","3":"1","4":"1"},{"1":"NA","2":"C51","3":"1","4":"1"},{"1":"NA","2":"C52","3":"2","4":"1"},{"1":"NA","2":"C53","3":"1","4":"1"},{"1":"NA","2":"C54","3":"2","4":"1"},{"1":"NA","2":"C6","3":"2","4":"1"},{"1":"NA","2":"C68","3":"2","4":"1"},{"1":"NA","2":"C7","3":"2","4":"1"},{"1":"NA","2":"C70","3":"1","4":"1"},{"1":"NA","2":"C78","3":"4","4":"1"},{"1":"NA","2":"C80","3":"2","4":"1"},{"1":"NA","2":"C82","3":"1","4":"1"},{"1":"NA","2":"C83","3":"2","4":"1"},{"1":"NA","2":"C87","3":"1","4":"1"},{"1":"NA","2":"C89","3":"2","4":"1"},{"1":"NA","2":"C92","3":"2","4":"1"},{"1":"NA","2":"C93","3":"2","4":"1"},{"1":"NA","2":"D","3":"2","4":"1"},{"1":"NA","2":"D11","3":"1","4":"1"},{"1":"NA","2":"D15","3":"2","4":"1"},{"1":"NA","2":"D17","3":"2","4":"1"},{"1":"NA","2":"D19","3":"2","4":"1"},{"1":"NA","2":"D20","3":"2","4":"1"},{"1":"NA","2":"D21","3":"2","4":"1"},{"1":"NA","2":"D22","3":"1","4":"1"},{"1":"NA","2":"D26","3":"2","4":"1"},{"1":"NA","2":"D30","3":"2","4":"1"},{"1":"NA","2":"D34","3":"1","4":"1"},{"1":"NA","2":"D35","3":"2","4":"1"},{"1":"NA","2":"D36","3":"2","4":"1"},{"1":"NA","2":"D37","3":"2","4":"1"},{"1":"NA","2":"D40","3":"1","4":"1"},{"1":"NA","2":"D45","3":"1","4":"1"},{"1":"NA","2":"D46","3":"1","4":"1"},{"1":"NA","2":"D47","3":"1","4":"1"},{"1":"NA","2":"D48","3":"1","4":"1"},{"1":"NA","2":"D50","3":"1","4":"1"},{"1":"NA","2":"D56","3":"1","4":"1"},{"1":"NA","2":"D6","3":"1","4":"1"},{"1":"NA","2":"D7","3":"1","4":"1"},{"1":"NA","2":"D9","3":"1","4":"1"},{"1":"NA","2":"E101","3":"3","4":"1"},{"1":"NA","2":"E12","3":"1","4":"1"},{"1":"NA","2":"E121","3":"2","4":"1"},{"1":"NA","2":"E17","3":"1","4":"1"},{"1":"NA","2":"E33","3":"2","4":"1"},{"1":"NA","2":"E34","3":"3","4":"1"},{"1":"NA","2":"E38","3":"1","4":"1"},{"1":"NA","2":"E39 E41","3":"1","4":"1"},{"1":"NA","2":"E40","3":"1","4":"1"},{"1":"NA","2":"E44","3":"2","4":"1"},{"1":"NA","2":"E46","3":"2","4":"1"},{"1":"NA","2":"E50","3":"2","4":"1"},{"1":"NA","2":"E58","3":"1","4":"1"},{"1":"NA","2":"E60","3":"1","4":"1"},{"1":"NA","2":"E63","3":"1","4":"1"},{"1":"NA","2":"E67","3":"2","4":"1"},{"1":"NA","2":"E68","3":"1","4":"1"},{"1":"NA","2":"E8","3":"2","4":"1"},{"1":"NA","2":"F","3":"1","4":"1"},{"1":"NA","2":"F E46","3":"1","4":"1"},{"1":"NA","2":"F E57","3":"1","4":"1"},{"1":"NA","2":"F E69","3":"1","4":"1"},{"1":"NA","2":"F G63","3":"2","4":"1"},{"1":"NA","2":"F G73","3":"2","4":"1"},{"1":"NA","2":"F2","3":"4","4":"1"},{"1":"NA","2":"F33","3":"1","4":"1"},{"1":"NA","2":"F38","3":"1","4":"1"},{"1":"NA","2":"F4","3":"4","4":"1"},{"1":"NA","2":"G6","3":"2","4":"1"},{"1":"NA","2":"T","3":"1","4":"1"},{"1":"NA","2":"NA","3":"746","4":"1"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>data1 <span class="sc">|&gt;</span> </span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    Pclass,</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    Ticket_Pre</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">count</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Pclass"],"name":[1],"type":["fct"],"align":["left"]},{"label":["Ticket_Pre"],"name":[2],"type":["chr"],"align":["left"]},{"label":["n"],"name":[3],"type":["int"],"align":["right"]}],"data":[{"1":"1","2":"F.C.","3":"3"},{"1":"1","2":"PC","3":"92"},{"1":"1","2":"W.E.P.","3":"2"},{"1":"1","2":"WE/P","3":"2"},{"1":"1","2":"NA","3":"224"},{"1":"2","2":"C.A.","3":"31"},{"1":"2","2":"C.A./SOTON","3":"1"},{"1":"2","2":"CA","3":"2"},{"1":"2","2":"F.C.C.","3":"9"},{"1":"2","2":"P/PP","3":"2"},{"1":"2","2":"S.C./PARIS","3":"3"},{"1":"2","2":"S.O./P.P. 2","3":"2"},{"1":"2","2":"S.O./P.P. 3","3":"2"},{"1":"2","2":"S.O.C.","3":"7"},{"1":"2","2":"S.O.P.","3":"1"},{"1":"2","2":"S.W./PP","3":"1"},{"1":"2","2":"SC","3":"2"},{"1":"2","2":"SC/A.3","3":"1"},{"1":"2","2":"SC/AH","3":"4"},{"1":"2","2":"SC/AH Basle","3":"1"},{"1":"2","2":"SC/PARIS","3":"11"},{"1":"2","2":"SC/Paris","3":"5"},{"1":"2","2":"SCO/W","3":"1"},{"1":"2","2":"SO/C","3":"1"},{"1":"2","2":"SW/PP","3":"1"},{"1":"2","2":"W./C.","3":"4"},{"1":"2","2":"W/C","3":"1"},{"1":"2","2":"NA","3":"184"},{"1":"3","2":"A. 2.","3":"1"},{"1":"3","2":"A./5.","3":"3"},{"1":"3","2":"A.5.","3":"3"},{"1":"3","2":"A/4","3":"6"},{"1":"3","2":"A/4.","3":"3"},{"1":"3","2":"A/5","3":"12"},{"1":"3","2":"A/5.","3":"10"},{"1":"3","2":"A/S","3":"1"},{"1":"3","2":"A4.","3":"1"},{"1":"3","2":"AQ/3.","3":"1"},{"1":"3","2":"AQ/4","3":"1"},{"1":"3","2":"C","3":"8"},{"1":"3","2":"C.A.","3":"15"},{"1":"3","2":"CA","3":"8"},{"1":"3","2":"CA.","3":"12"},{"1":"3","2":"Fa","3":"1"},{"1":"3","2":"LINE","3":"4"},{"1":"3","2":"LP","3":"1"},{"1":"3","2":"PP","3":"4"},{"1":"3","2":"S.C./A.4.","3":"1"},{"1":"3","2":"S.O./P.P.","3":"3"},{"1":"3","2":"S.P.","3":"1"},{"1":"3","2":"SC/A4","3":"1"},{"1":"3","2":"SOTON/O.Q.","3":"16"},{"1":"3","2":"SOTON/O2","3":"3"},{"1":"3","2":"SOTON/OQ","3":"8"},{"1":"3","2":"STON/O 2.","3":"14"},{"1":"3","2":"STON/O2.","3":"7"},{"1":"3","2":"STON/OQ.","3":"1"},{"1":"3","2":"W./C.","3":"10"},{"1":"3","2":"NA","3":"549"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>data1 <span class="sc">|&gt;</span> <span class="fu">pull</span>(Ticket_Pre) <span class="sc">|&gt;</span> <span class="fu">head</span>(<span class="at">n =</span> <span class="dv">20</span>) <span class="co">#See below for possible categorization and freq count</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "A/5"      "PC"       "STON/O2." NA         NA         NA        
+ [7] NA         NA         NA         NA         "PP"       NA        
+[13] "A/5."     NA         NA         NA         NA         NA        
+[19] NA         NA        </code></pre>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="sec-inspection-Cabin" class="level2">
+<h2 class="anchored" data-anchor-id="sec-inspection-Cabin">Inspection of <code>Cabin</code> variable</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>data1 <span class="ot">&lt;-</span> </span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  data1 <span class="sc">|&gt;</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Cabin_sector =</span> <span class="fu">ifelse</span>(<span class="sc">!</span><span class="fu">is.na</span>(Cabin), <span class="fu">str_extract</span>(Cabin, <span class="st">"[A-GT](?=[^A-GT]*$)"</span>), <span class="cn">NA</span>)) <span class="co"># Extracts last occurrence of letter in Cabin string</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="co"># --&gt; Sector is looked at below together with Pclass</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>data1 <span class="ot">&lt;-</span> </span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  data1 <span class="sc">%&gt;%</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">CabinNumber =</span> </span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>           <span class="fu">ifelse</span>(<span class="sc">!</span><span class="fu">is.na</span>(Cabin), <span class="co">#only process non-NA values</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">sapply</span>(<span class="fu">str_extract_all</span>(Cabin, <span class="st">"</span><span class="sc">\\</span><span class="st">d+"</span>), <span class="cf">function</span>(x) { </span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>                    <span class="co"># Iterates through the list of extracted numbers (x)</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>                    <span class="co"># "B23 B25 B27" → c("23", "25", "27")  </span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> (<span class="fu">length</span>(x) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">max</span>(<span class="fu">as.numeric</span>(x)) <span class="co"># Calculate max() and convert to numeric format</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>                    } <span class="cf">else</span> {<span class="cn">NA</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>                        }</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>                    }</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>                    ),</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>                  <span class="cn">NA</span></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>                  )</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>         ) <span class="co">#Extracted highest number from Cabin; NA if no number</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>data1<span class="sc">$</span>CabinNumber <span class="sc">|&gt;</span> <span class="fu">head</span>(<span class="at">n =</span> <span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1]  NA  85  NA 123  NA  NA  46  NA  NA  NA</code></pre>
+</div>
+</div>
+</section>
+<section id="sec-inspection-Name" class="level2">
+<h2 class="anchored" data-anchor-id="sec-inspection-Name">Inspection of <code>Name</code> variable</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>data1 <span class="sc">|&gt;</span> <span class="fu">arrange</span>(Name) <span class="sc">|&gt;</span> <span class="fu">head</span>(Name, <span class="at">n =</span> <span class="dv">10</span>) <span class="co">#There are some additional names listed for some patients - Why is this? </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["source"],"name":[1],"type":["chr"],"align":["left"]},{"label":["PassengerId"],"name":[2],"type":["int"],"align":["right"]},{"label":["Survived"],"name":[3],"type":["fct"],"align":["left"]},{"label":["Pclass"],"name":[4],"type":["fct"],"align":["left"]},{"label":["Name"],"name":[5],"type":["chr"],"align":["left"]},{"label":["Sex"],"name":[6],"type":["fct"],"align":["left"]},{"label":["Age"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["SibSp"],"name":[8],"type":["int"],"align":["right"]},{"label":["Parch"],"name":[9],"type":["int"],"align":["right"]},{"label":["Ticket"],"name":[10],"type":["chr"],"align":["left"]},{"label":["Fare"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["Cabin"],"name":[12],"type":["chr"],"align":["left"]},{"label":["Embarked"],"name":[13],"type":["fct"],"align":["left"]},{"label":["Ticket_Nr"],"name":[14],"type":["chr"],"align":["left"]},{"label":["Ticket_Pre"],"name":[15],"type":["chr"],"align":["left"]},{"label":["Cabin_sector"],"name":[16],"type":["chr"],"align":["left"]},{"label":["CabinNumber"],"name":[17],"type":["dbl"],"align":["right"]}],"data":[{"1":"train","2":"846","3":"0","4":"3","5":"Abbing, Mr. Anthony","6":"male","7":"42","8":"0","9":"0","10":"C.A. 5547","11":"7.5500","12":"NA","13":"S","14":"5547","15":"C.A.","16":"NA","17":"NA","_rn_":"1"},{"1":"test","2":"1284","3":"NA","4":"3","5":"Abbott, Master. Eugene Joseph","6":"male","7":"13","8":"0","9":"2","10":"C.A. 2673","11":"20.2500","12":"NA","13":"S","14":"2673","15":"C.A.","16":"NA","17":"NA","_rn_":"2"},{"1":"train","2":"747","3":"0","4":"3","5":"Abbott, Mr. Rossmore Edward","6":"male","7":"16","8":"1","9":"1","10":"C.A. 2673","11":"20.2500","12":"NA","13":"S","14":"2673","15":"C.A.","16":"NA","17":"NA","_rn_":"3"},{"1":"train","2":"280","3":"1","4":"3","5":"Abbott, Mrs. Stanton (Rosa Hunt)","6":"female","7":"35","8":"1","9":"1","10":"C.A. 2673","11":"20.2500","12":"NA","13":"S","14":"2673","15":"C.A.","16":"NA","17":"NA","_rn_":"4"},{"1":"test","2":"1237","3":"NA","4":"3","5":"Abelseth, Miss. Karen Marie","6":"female","7":"16","8":"0","9":"0","10":"348125","11":"7.6500","12":"NA","13":"S","14":"348125","15":"NA","16":"NA","17":"NA","_rn_":"5"},{"1":"test","2":"949","3":"NA","4":"3","5":"Abelseth, Mr. Olaus Jorgensen","6":"male","7":"25","8":"0","9":"0","10":"348122","11":"7.6500","12":"F G63","13":"S","14":"348122","15":"NA","16":"G","17":"63","_rn_":"6"},{"1":"train","2":"309","3":"0","4":"2","5":"Abelson, Mr. Samuel","6":"male","7":"30","8":"1","9":"0","10":"P/PP 3381","11":"24.0000","12":"NA","13":"C","14":"3381","15":"P/PP","16":"NA","17":"NA","_rn_":"7"},{"1":"train","2":"875","3":"1","4":"2","5":"Abelson, Mrs. Samuel (Hannah Wizosky)","6":"female","7":"28","8":"1","9":"0","10":"P/PP 3381","11":"24.0000","12":"NA","13":"C","14":"3381","15":"P/PP","16":"NA","17":"NA","_rn_":"8"},{"1":"test","2":"1143","3":"NA","4":"3","5":"Abrahamsson, Mr. Abraham August Johannes","6":"male","7":"20","8":"0","9":"0","10":"SOTON/O2 3101284","11":"7.9250","12":"NA","13":"S","14":"3101284","15":"SOTON/O2","16":"NA","17":"NA","_rn_":"9"},{"1":"test","2":"900","3":"NA","4":"3","5":"Abrahim, Mrs. Joseph (Sophie Halaut Easu)","6":"female","7":"18","8":"0","9":"0","10":"2657","11":"7.2292","12":"NA","13":"C","14":"2657","15":"NA","16":"NA","17":"NA","_rn_":"10"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># (...) These names don't refer to other patients on the ship - don't know what these are</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="co"># \"...\" - most probably a nickname</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="co"># (\"...\") - don't know</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="co"># What to do with sibsp / parch?</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Should we have variable 'Family' (0/1) instead of sibsp / parch? </span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Or is one better for survival than the other? </span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a><span class="co"># E.g., will I be safer if I have siblings? Or will I be at a higher risk if I have a child to care after?</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="co"># sibsp: The data1set defines family relations in this way...</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Sibling = brother, sister, stepbrother, stepsister</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Spouse = husband, wife (mistresses and fiancés were ignored)</span></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a><span class="co"># parch: The data1set defines family relations in this way...</span></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Parent = mother, father</span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Child = daughter, son, stepdaughter, stepson</span></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Some children travelled only with a nanny, therefore parch=0 for them.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="data-visualization" class="level2">
+<h2 class="anchored" data-anchor-id="data-visualization">Data visualization</h2>
+</section>
+<section id="inspection-of-age" class="level2">
+<h2 class="anchored" data-anchor-id="inspection-of-age">Inspection of age</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>data1 <span class="sc">|&gt;</span> <span class="co"># need to address the missing values</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(Survived)</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Age)) <span class="sc">+</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">2</span>,</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>                 <span class="at">alpha =</span> <span class="fl">0.5</span>,</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>                 <span class="at">position =</span> <span class="st">"identity"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 177 rows containing non-finite outside the scale range
+(`stat_bin()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Script_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="histograms" class="level3">
+<h3 class="anchored" data-anchor-id="histograms">Histograms</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>data1 <span class="sc">|&gt;</span> </span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span><span class="fu">is.na</span>(Survived)</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Age, </span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">fill =</span> Survived,</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> Survived)) <span class="sc">+</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">2</span>,</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>                 <span class="at">alpha =</span> <span class="fl">0.5</span>,</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>                 <span class="at">position =</span> <span class="st">"identity"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 177 rows containing non-finite outside the scale range
+(`stat_bin()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Script_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Age in years</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Age is fractional if less than 1. </span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="co"># If the age is estimated, is it in the form of xx.5</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Move age_estimated to new column ?</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(data1<span class="sc">$</span>Age)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Script_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Passenger fare</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(data1<span class="sc">$</span>Fare, <span class="at">breaks =</span> <span class="dv">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Script_files/figure-html/unnamed-chunk-12-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Nr of siblings / spouses aboard the Titanic</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="co"># The data1set defines family relations in this way...</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Sibling = brother, sister, stepbrother, stepsister</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Spouse = husband, wife (mistresses and fiancés were ignored)</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(data1<span class="sc">$</span>SibSp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Script_files/figure-html/unnamed-chunk-12-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Nr of parents / children aboard the Titanic</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="co"># The data1set defines family relations in this way...</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Parent = mother, father</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Child = daughter, son, stepdaughter, stepson</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Some children travelled only with a nanny, therefore parch=0 for them.</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(data1<span class="sc">$</span>Parch)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Script_files/figure-html/unnamed-chunk-12-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="frequency-tables" class="level3">
+<h3 class="anchored" data-anchor-id="frequency-tables">Frequency tables</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For data1$Sex</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(data1<span class="sc">$</span>Sex, <span class="at">useNA =</span> <span class="st">"ifany"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+female   male 
+   466    843 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For data1$Pclass - A proxy for socio-economic status (SES)</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(data1<span class="sc">$</span>Pclass, <span class="at">useNA =</span> <span class="st">"ifany"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+  1   2   3 
+323 277 709 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For data1$Embarked</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(data1<span class="sc">$</span>Embarked, <span class="at">useNA =</span> <span class="st">"ifany"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+        C    Q    S &lt;NA&gt; 
+   0  270  123  914    2 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co">#for outcome (death)</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(data1<span class="sc">$</span>Survived, <span class="at">useNA =</span> <span class="st">"ifany"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+   0    1 &lt;NA&gt; 
+ 549  342  418 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co">#for outcome (cabin)</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(data1<span class="sc">$</span>Cabin, <span class="at">useNA =</span> <span class="st">"ifany"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+            A10             A11             A14             A16             A18 
+              1               1               1               1               1 
+            A19             A20             A21             A23             A24 
+              1               1               1               1               1 
+            A26             A29             A31             A32             A34 
+              1               1               1               1               3 
+            A36              A5              A6              A7              A9 
+              1               1               1               1               1 
+            B10            B101            B102             B11             B18 
+              1               1               1               1               2 
+            B19             B20             B22             B24             B26 
+              1               2               2               1               1 
+            B28              B3             B30             B35             B36 
+              2               1               1               2               1 
+            B37             B38             B39              B4             B41 
+              1               1               1               1               2 
+            B42             B45             B49              B5             B50 
+              1               2               2               2               1 
+    B51 B53 B55     B52 B54 B56 B57 B59 B63 B66         B58 B60             B61 
+              3               1               5               3               1 
+            B69             B71             B73             B77             B78 
+              2               2               1               2               2 
+            B79             B80         B82 B84             B86             B94 
+              1               1               1               1               1 
+        B96 B98            C101            C103            C104            C105 
+              4               3               1               1               1 
+           C106            C110            C111            C116            C118 
+              2               1               1               2               1 
+           C123            C124            C125            C126            C128 
+              2               2               2               2               1 
+           C130            C132            C148              C2         C22 C26 
+              1               1               1               2               4 
+    C23 C25 C27             C28             C30             C31             C32 
+              6               1               1               2               2 
+            C39             C45             C46             C47             C49 
+              1               1               2               1               1 
+            C50             C51             C52             C53             C54 
+              1               1               2               1               2 
+        C55 C57              C6         C62 C64             C65             C68 
+              2               2               2               2               2 
+             C7             C70             C78             C80             C82 
+              2               1               4               2               1 
+            C83             C85             C86             C87             C89 
+              2               2               2               1               2 
+            C90             C91             C92             C93             C95 
+              1               1               2               2               1 
+            C97             C99               D         D10 D12             D11 
+              1               1               4               2               1 
+            D15             D17             D19             D20             D21 
+              2               2               2               2               2 
+            D22             D26             D28             D30             D33 
+              1               2               2               2               2 
+            D34             D35             D36             D37             D38 
+              1               2               2               2               1 
+            D40             D43             D45             D46             D47 
+              1               1               1               1               1 
+            D48             D49             D50             D56              D6 
+              1               1               1               1               1 
+             D7              D9             E10            E101             E12 
+              1               1               1               3               1 
+           E121             E17             E24             E25             E31 
+              2               1               2               2               2 
+            E33             E34             E36             E38         E39 E41 
+              2               3               1               1               1 
+            E40             E44             E45             E46             E49 
+              1               2               1               2               1 
+            E50             E52             E58             E60             E63 
+              2               1               1               1               1 
+            E67             E68             E77              E8               F 
+              2               1               1               2               1 
+          F E46           F E57           F E69           F G63           F G73 
+              1               1               1               2               2 
+             F2             F33             F38              F4              G6 
+              4               4               1               4               5 
+              T            &lt;NA&gt; 
+              1            1014 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co">#for newly created column 'Prefixes'</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(data1<span class="sc">$</span>Ticket_pre, <span class="at">useNA =</span> <span class="st">"ifany"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt; table of extent 0 &gt;</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Could theoretically clean this column.. </span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="co"># A./5., A.5., A/5, A/5. --&gt; A/5</span></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a><span class="co"># SOTON/O.Q., SOTON/O2, SOTON/OQ, STON/O, STON/O2. --&gt; SOTON </span></span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a><span class="co"># and so on... and see whether it correlates with anything... </span></span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Care: 665 missing values</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>data1 <span class="sc">|&gt;</span> </span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(</span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>    PassengerId,</span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>    Pclass,</span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>    Cabin,</span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>    Cabin_sector,</span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>    Ticket,</span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>    Ticket_Nr,</span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>    Ticket_Pre,</span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">group_by</span>(</span>
+<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a>    Pclass</span>
+<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(</span>
+<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a>    Cabin_sector</span>
+<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">prop =</span> n<span class="sc">/</span><span class="fu">sum</span>(n)</span>
+<span id="cb50-19"><a href="#cb50-19" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Pclass"],"name":[1],"type":["fct"],"align":["left"]},{"label":["Cabin_sector"],"name":[2],"type":["chr"],"align":["left"]},{"label":["n"],"name":[3],"type":["int"],"align":["right"]},{"label":["prop"],"name":[4],"type":["dbl"],"align":["right"]}],"data":[{"1":"1","2":"A","3":"22","4":"0.068111455"},{"1":"1","2":"B","3":"65","4":"0.201238390"},{"1":"1","2":"C","3":"94","4":"0.291021672"},{"1":"1","2":"D","3":"40","4":"0.123839009"},{"1":"1","2":"E","3":"34","4":"0.105263158"},{"1":"1","2":"T","3":"1","4":"0.003095975"},{"1":"1","2":"NA","3":"67","4":"0.207430341"},{"1":"2","2":"D","3":"6","4":"0.021660650"},{"1":"2","2":"E","3":"4","4":"0.014440433"},{"1":"2","2":"F","3":"13","4":"0.046931408"},{"1":"2","2":"NA","3":"254","4":"0.916967509"},{"1":"3","2":"E","3":"6","4":"0.008462623"},{"1":"3","2":"F","3":"1","4":"0.001410437"},{"1":"3","2":"G","3":"9","4":"0.012693935"},{"1":"3","2":"NA","3":"693","4":"0.977433004"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>data1 <span class="sc">|&gt;</span> <span class="fu">count</span>(Pclass, Cabin_sector)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Pclass"],"name":[1],"type":["fct"],"align":["left"]},{"label":["Cabin_sector"],"name":[2],"type":["chr"],"align":["left"]},{"label":["n"],"name":[3],"type":["int"],"align":["right"]}],"data":[{"1":"1","2":"A","3":"22"},{"1":"1","2":"B","3":"65"},{"1":"1","2":"C","3":"94"},{"1":"1","2":"D","3":"40"},{"1":"1","2":"E","3":"34"},{"1":"1","2":"T","3":"1"},{"1":"1","2":"NA","3":"67"},{"1":"2","2":"D","3":"6"},{"1":"2","2":"E","3":"4"},{"1":"2","2":"F","3":"13"},{"1":"2","2":"NA","3":"254"},{"1":"3","2":"E","3":"6"},{"1":"3","2":"F","3":"1"},{"1":"3","2":"G","3":"9"},{"1":"3","2":"NA","3":"693"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Pclass doesn't necessarily separate Cabin_sector</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>data1 <span class="sc">|&gt;</span> <span class="fu">count</span>(Pclass, Ticket_Pre)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Pclass"],"name":[1],"type":["fct"],"align":["left"]},{"label":["Ticket_Pre"],"name":[2],"type":["chr"],"align":["left"]},{"label":["n"],"name":[3],"type":["int"],"align":["right"]}],"data":[{"1":"1","2":"F.C.","3":"3"},{"1":"1","2":"PC","3":"92"},{"1":"1","2":"W.E.P.","3":"2"},{"1":"1","2":"WE/P","3":"2"},{"1":"1","2":"NA","3":"224"},{"1":"2","2":"C.A.","3":"31"},{"1":"2","2":"C.A./SOTON","3":"1"},{"1":"2","2":"CA","3":"2"},{"1":"2","2":"F.C.C.","3":"9"},{"1":"2","2":"P/PP","3":"2"},{"1":"2","2":"S.C./PARIS","3":"3"},{"1":"2","2":"S.O./P.P. 2","3":"2"},{"1":"2","2":"S.O./P.P. 3","3":"2"},{"1":"2","2":"S.O.C.","3":"7"},{"1":"2","2":"S.O.P.","3":"1"},{"1":"2","2":"S.W./PP","3":"1"},{"1":"2","2":"SC","3":"2"},{"1":"2","2":"SC/A.3","3":"1"},{"1":"2","2":"SC/AH","3":"4"},{"1":"2","2":"SC/AH Basle","3":"1"},{"1":"2","2":"SC/PARIS","3":"11"},{"1":"2","2":"SC/Paris","3":"5"},{"1":"2","2":"SCO/W","3":"1"},{"1":"2","2":"SO/C","3":"1"},{"1":"2","2":"SW/PP","3":"1"},{"1":"2","2":"W./C.","3":"4"},{"1":"2","2":"W/C","3":"1"},{"1":"2","2":"NA","3":"184"},{"1":"3","2":"A. 2.","3":"1"},{"1":"3","2":"A./5.","3":"3"},{"1":"3","2":"A.5.","3":"3"},{"1":"3","2":"A/4","3":"6"},{"1":"3","2":"A/4.","3":"3"},{"1":"3","2":"A/5","3":"12"},{"1":"3","2":"A/5.","3":"10"},{"1":"3","2":"A/S","3":"1"},{"1":"3","2":"A4.","3":"1"},{"1":"3","2":"AQ/3.","3":"1"},{"1":"3","2":"AQ/4","3":"1"},{"1":"3","2":"C","3":"8"},{"1":"3","2":"C.A.","3":"15"},{"1":"3","2":"CA","3":"8"},{"1":"3","2":"CA.","3":"12"},{"1":"3","2":"Fa","3":"1"},{"1":"3","2":"LINE","3":"4"},{"1":"3","2":"LP","3":"1"},{"1":"3","2":"PP","3":"4"},{"1":"3","2":"S.C./A.4.","3":"1"},{"1":"3","2":"S.O./P.P.","3":"3"},{"1":"3","2":"S.P.","3":"1"},{"1":"3","2":"SC/A4","3":"1"},{"1":"3","2":"SOTON/O.Q.","3":"16"},{"1":"3","2":"SOTON/O2","3":"3"},{"1":"3","2":"SOTON/OQ","3":"8"},{"1":"3","2":"STON/O 2.","3":"14"},{"1":"3","2":"STON/O2.","3":"7"},{"1":"3","2":"STON/OQ.","3":"1"},{"1":"3","2":"W./C.","3":"10"},{"1":"3","2":"NA","3":"549"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co"># No real relation here either - check again</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>data1 <span class="sc">|&gt;</span> </span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Pclass) <span class="sc">|&gt;</span> </span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(Ticket_Pre) <span class="sc">|&gt;</span> </span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(n))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Pclass"],"name":[1],"type":["fct"],"align":["left"]},{"label":["Ticket_Pre"],"name":[2],"type":["chr"],"align":["left"]},{"label":["n"],"name":[3],"type":["int"],"align":["right"]}],"data":[{"1":"3","2":"NA","3":"549"},{"1":"1","2":"NA","3":"224"},{"1":"2","2":"NA","3":"184"},{"1":"1","2":"PC","3":"92"},{"1":"2","2":"C.A.","3":"31"},{"1":"3","2":"SOTON/O.Q.","3":"16"},{"1":"3","2":"C.A.","3":"15"},{"1":"3","2":"STON/O 2.","3":"14"},{"1":"3","2":"A/5","3":"12"},{"1":"3","2":"CA.","3":"12"},{"1":"2","2":"SC/PARIS","3":"11"},{"1":"3","2":"A/5.","3":"10"},{"1":"3","2":"W./C.","3":"10"},{"1":"2","2":"F.C.C.","3":"9"},{"1":"3","2":"C","3":"8"},{"1":"3","2":"CA","3":"8"},{"1":"3","2":"SOTON/OQ","3":"8"},{"1":"2","2":"S.O.C.","3":"7"},{"1":"3","2":"STON/O2.","3":"7"},{"1":"3","2":"A/4","3":"6"},{"1":"2","2":"SC/Paris","3":"5"},{"1":"2","2":"SC/AH","3":"4"},{"1":"2","2":"W./C.","3":"4"},{"1":"3","2":"LINE","3":"4"},{"1":"3","2":"PP","3":"4"},{"1":"1","2":"F.C.","3":"3"},{"1":"2","2":"S.C./PARIS","3":"3"},{"1":"3","2":"A./5.","3":"3"},{"1":"3","2":"A.5.","3":"3"},{"1":"3","2":"A/4.","3":"3"},{"1":"3","2":"S.O./P.P.","3":"3"},{"1":"3","2":"SOTON/O2","3":"3"},{"1":"1","2":"W.E.P.","3":"2"},{"1":"1","2":"WE/P","3":"2"},{"1":"2","2":"CA","3":"2"},{"1":"2","2":"P/PP","3":"2"},{"1":"2","2":"S.O./P.P. 2","3":"2"},{"1":"2","2":"S.O./P.P. 3","3":"2"},{"1":"2","2":"SC","3":"2"},{"1":"2","2":"C.A./SOTON","3":"1"},{"1":"2","2":"S.O.P.","3":"1"},{"1":"2","2":"S.W./PP","3":"1"},{"1":"2","2":"SC/A.3","3":"1"},{"1":"2","2":"SC/AH Basle","3":"1"},{"1":"2","2":"SCO/W","3":"1"},{"1":"2","2":"SO/C","3":"1"},{"1":"2","2":"SW/PP","3":"1"},{"1":"2","2":"W/C","3":"1"},{"1":"3","2":"A. 2.","3":"1"},{"1":"3","2":"A/S","3":"1"},{"1":"3","2":"A4.","3":"1"},{"1":"3","2":"AQ/3.","3":"1"},{"1":"3","2":"AQ/4","3":"1"},{"1":"3","2":"Fa","3":"1"},{"1":"3","2":"LP","3":"1"},{"1":"3","2":"S.C./A.4.","3":"1"},{"1":"3","2":"S.P.","3":"1"},{"1":"3","2":"SC/A4","3":"1"},{"1":"3","2":"STON/OQ.","3":"1"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>data1 <span class="sc">|&gt;</span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Cabin_sector) <span class="sc">|&gt;</span> </span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(Ticket_Pre)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["Cabin_sector"],"name":[1],"type":["chr"],"align":["left"]},{"label":["Ticket_Pre"],"name":[2],"type":["chr"],"align":["left"]},{"label":["n"],"name":[3],"type":["int"],"align":["right"]}],"data":[{"1":"A","2":"PC","3":"7"},{"1":"A","2":"NA","3":"15"},{"1":"B","2":"F.C.","3":"2"},{"1":"B","2":"PC","3":"21"},{"1":"B","2":"WE/P","3":"2"},{"1":"B","2":"NA","3":"40"},{"1":"C","2":"PC","3":"23"},{"1":"C","2":"NA","3":"71"},{"1":"D","2":"PC","3":"8"},{"1":"D","2":"SC/AH Basle","3":"1"},{"1":"D","2":"SC/PARIS","3":"1"},{"1":"D","2":"SC/Paris","3":"1"},{"1":"D","2":"NA","3":"35"},{"1":"E","2":"PC","3":"8"},{"1":"E","2":"S.O./P.P. 3","3":"1"},{"1":"E","2":"SOTON/O.Q.","3":"1"},{"1":"E","2":"W.E.P.","3":"2"},{"1":"E","2":"NA","3":"32"},{"1":"F","2":"C.A.","3":"2"},{"1":"F","2":"W./C.","3":"1"},{"1":"F","2":"NA","3":"11"},{"1":"G","2":"PP","3":"3"},{"1":"G","2":"NA","3":"6"},{"1":"T","2":"NA","3":"1"},{"1":"NA","2":"A. 2.","3":"1"},{"1":"NA","2":"A./5.","3":"3"},{"1":"NA","2":"A.5.","3":"3"},{"1":"NA","2":"A/4","3":"6"},{"1":"NA","2":"A/4.","3":"3"},{"1":"NA","2":"A/5","3":"12"},{"1":"NA","2":"A/5.","3":"10"},{"1":"NA","2":"A/S","3":"1"},{"1":"NA","2":"A4.","3":"1"},{"1":"NA","2":"AQ/3.","3":"1"},{"1":"NA","2":"AQ/4","3":"1"},{"1":"NA","2":"C","3":"8"},{"1":"NA","2":"C.A.","3":"44"},{"1":"NA","2":"C.A./SOTON","3":"1"},{"1":"NA","2":"CA","3":"10"},{"1":"NA","2":"CA.","3":"12"},{"1":"NA","2":"F.C.","3":"1"},{"1":"NA","2":"F.C.C.","3":"9"},{"1":"NA","2":"Fa","3":"1"},{"1":"NA","2":"LINE","3":"4"},{"1":"NA","2":"LP","3":"1"},{"1":"NA","2":"P/PP","3":"2"},{"1":"NA","2":"PC","3":"25"},{"1":"NA","2":"PP","3":"1"},{"1":"NA","2":"S.C./A.4.","3":"1"},{"1":"NA","2":"S.C./PARIS","3":"3"},{"1":"NA","2":"S.O./P.P.","3":"3"},{"1":"NA","2":"S.O./P.P. 2","3":"2"},{"1":"NA","2":"S.O./P.P. 3","3":"1"},{"1":"NA","2":"S.O.C.","3":"7"},{"1":"NA","2":"S.O.P.","3":"1"},{"1":"NA","2":"S.P.","3":"1"},{"1":"NA","2":"S.W./PP","3":"1"},{"1":"NA","2":"SC","3":"2"},{"1":"NA","2":"SC/A.3","3":"1"},{"1":"NA","2":"SC/A4","3":"1"},{"1":"NA","2":"SC/AH","3":"4"},{"1":"NA","2":"SC/PARIS","3":"10"},{"1":"NA","2":"SC/Paris","3":"4"},{"1":"NA","2":"SCO/W","3":"1"},{"1":"NA","2":"SO/C","3":"1"},{"1":"NA","2":"SOTON/O.Q.","3":"15"},{"1":"NA","2":"SOTON/O2","3":"3"},{"1":"NA","2":"SOTON/OQ","3":"8"},{"1":"NA","2":"STON/O 2.","3":"14"},{"1":"NA","2":"STON/O2.","3":"7"},{"1":"NA","2":"STON/OQ.","3":"1"},{"1":"NA","2":"SW/PP","3":"1"},{"1":"NA","2":"W./C.","3":"13"},{"1":"NA","2":"W/C","3":"1"},{"1":"NA","2":"NA","3":"746"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="missing-values" class="level1">
+<h1>Missing values</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gg_miss_var</span>(data1, <span class="at">show_pct =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Script_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="fu">naplot</span>(<span class="fu">naclus</span>(data1))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Script_files/figure-html/unnamed-chunk-18-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Script_files/figure-html/unnamed-chunk-18-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Script_files/figure-html/unnamed-chunk-18-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Script_files/figure-html/unnamed-chunk-18-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="imputation" class="level1">
+<h1>Imputation ?</h1>
+</section>
+<section id="data-preprocessing" class="level1">
+<h1>Data preprocessing</h1>
+<section id="split-cabin-from-room-number" class="level3">
+<h3 class="anchored" data-anchor-id="split-cabin-from-room-number">Split cabin from room number</h3>
+</section>
+<section id="look-at-relationships-cabin-vs.-class-etc" class="level3">
+<h3 class="anchored" data-anchor-id="look-at-relationships-cabin-vs.-class-etc">Look at relationships cabin vs.&nbsp;class etc</h3>
+</section>
 </section>
 
 </main>
