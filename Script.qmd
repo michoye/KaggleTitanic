@@ -69,6 +69,11 @@ if(!require("tidymodels")){
 }
 ```
 
+```{r custom-functions}
+source("functions/mean_imput_missing_age.R")
+source("functions/clean_data.R")
+```
+
 # Introduction and setup {#sec-introduction}
 
 In the present Quarto document, we report our commonly developed solution to obtain predictions as part of a Kaggle competition (<https://www.kaggle.com/competitions/titanic/code>).
@@ -113,33 +118,14 @@ train |> head(n = 10)
 
 **Remarks**: It looks like the `train` and `test` datasets are composed of the same number of variables. It is not necessarily always the case. Indeed, while variables could be available in a given data set, they are not always available in another data set. Therefore, each variable used in a prediction model should be carefully inspected both for availability and completeness in the two `training` and the `test` sets. We provide a more detailed inspection in the following section.
 
-### Bind train and test
+# Data inspection (pre cleaning)
 
-```{r bind train and test}
-# Create a list of data frames
-df_list <- list(train = train, test = test)
-
-# Use bind_rows with .id argument
-data <- bind_rows(df_list, .id = "source")
-```
-
-```{r inspect data}
-# Print data
-head(data)
-```
-
-# Data inspection
-
-In the following chunk, using `head()`, we first have a look at the dataset, and the variables composing it, and more specifically we want to check their format:
-
-```{r inspect train}
-data |> head()
-```
+We already had a look a the training data above using `head()`. Let's inspect some more.
 
 In the following chunk, using `str()`, we have a look at the dataset, and the variables composing it, and more specifically we want to check their format:
 
 ```{r inspect2 train}
-str(data)
+str(train)
 ```
 
 **Remarks**:
@@ -153,107 +139,86 @@ str(data)
 We provide an initial variables distribution using `summary()`:
 
 ```{r inspect3 train}
-summary(data)
+summary(train)
 ```
 
 We provide an initial description of the number of missing values., with `gg_miss_var()`:
 
 ```{r}
-gg_miss_var(data, show_pct = TRUE)
+gg_miss_var(train, show_pct = TRUE) #very likely to be incorrect, that only Age has missing values
 ```
 
-**Remarks:** - `Survived` has a hgh number of missing. This is expected, as the data from `test` was merged with `train`. - `Age` has a high number of missing.
+We provide first an inspection of `Ticket`:
+
+```{r inspection-ticket-head} data1 |> pull(Ticket) |> head(n = 20)}
+```
+
+**Remarks:** While it seems the data are not structured, it looks like there are two parts in the `Ticket` variable: a prefix and a ticket number. We will separate them in during data cleaning.
 
 # Data management
 
+## Data cleaning
+
 ```{r}
-data1 <- data
+#once we have discuseed this, we can remove the function, because we source
+
+# clean_data <- function(data) {
+#   
+#  ticket_pattern <- "^(?:(.*) )?([0-9]+)$"
+#  
+#  data |>
+#    # Convert variables to factors
+#    mutate(
+#      across(c("Survived", "Pclass", "Sex", "Embarked"), as.factor)
+#    ) |>
+#    # Handle empty strings
+#    mutate(
+#      Cabin = if_else(Cabin == "", NA, Cabin),
+#      Embarked = if_else(Embarked == "", NA, Embarked)
+#    ) |>
+#    # Extract ticket information 
+#    mutate(
+#      ticket_nr = str_replace(Ticket, ticket_pattern, "\\2"),
+#      ticket_pre = str_replace(Ticket, ticket_pattern, "\\1")
+#    )
+# }
 ```
 
-We describe various data management steps.
-
-## Convert variables to factor {#sec-convert}
-
-```{r data-management-converttofactor}
-data1 <- 
-  data1 |> 
-  mutate(
-    across(c("Survived", "Pclass", "Sex", "Embarked"), 
-           as.factor
-           )
-  )
+```{r}
+train_clean <- train |> clean_data()
 ```
 
-## Replace empty strings {#sec-replace}
+`clean_data` does the following:
 
-Here, we replace empty strings in `Cabin` and `Embarked` with proper NA values.
+-   Convert `Survived`, `Pclass`, `Sex`, `Embarked` to factor
 
-```{r data1-management-replace-empty}
-data1 <- 
-  data1 |> 
-  dplyr::mutate(
-    Cabin = if_else(Cabin == "", NA, Cabin), 
-    Embarked = if_else(Embarked == "", NA, Embarked)
-    )
-```
+-   Replace empty string in `Cabin` and `Embarked` with NA
+
+-   Extract ticket prefix and ticket number from `Ticket` and store as `ticket_nr` and `ticket_pre`
 
 We provide again a description of the number of missing values., with `gg_miss_var()`:
 
 ```{r}
-gg_miss_var(data1, show_pct = TRUE)
+gg_miss_var(train_clean, show_pct = TRUE)
 ```
 
 **Remarks:**
 
--   `Survived`: still has a high number of missing. This is still expected, as the data from `test` was merged with `train`. 
-- `Cabin`: has a high proportion of missing
-- `Age`: has a high number of missing.
+-   `Cabin`: has a high proportion of missing
+-   `Age`: has a high number of missing.
+
+# Inspection after cleaning
 
 ## Inspection of `Ticket` variable {#sec-inspection-Ticket}
-
-We provide first an inspection of `Ticket`:
-
-```{r inspection-ticket-head}
-data1 |> pull(Ticket) |> head(n = 20)
-```
-
-**Remarks:** While it seems the data are not structured, it looks like there are two parts in the `Ticket` variable: a prefix and a ticket number. Let's isolate them first.
-
-### Extraction prefixes and ticket numbers
-
-```{r}
-data1 <- 
-  data1 |> 
-  dplyr::mutate(
-    Ticket_Nr = str_extract(Ticket, "\\b\\d{3,7}\\b"), # extract a chain of 3 to 7 digits
-    Ticket_Pre = str_remove(Ticket, "\\b\\d{3,7}\\b") # drop the ticket chain number
-  ) |> 
-  dplyr::mutate(
-    Ticket_Pre = str_trim(Ticket_Pre) # drop the spaces
-  ) |> 
-  dplyr::mutate(
-    Ticket_Pre =
-      if_else(
-        Ticket_Pre == "", NA, Ticket_Pre # consider empty strings as missing
-      )
-  )
-```
-
-**Remarks:** - What do the prefixes mean?
 
 #### Relation between prefix and Cabin?
 
 Is there any association between ticket pre and the type of Cabin?
 
 ```{r}
-data1 |> 
-  dplyr::select(
-    PassengerId,
-    Cabin,
-    Ticket_Pre,
-  )|> 
-  group_by(Ticket_Pre,
-           Cabin) |> 
+train_clean |> 
+  dplyr::select(PassengerId, Cabin, ticket_pre)|> 
+  group_by(ticket_pre, Cabin) |> 
   arrange(Cabin) |> 
   count() |> 
   dplyr::mutate(
@@ -262,30 +227,27 @@ data1 |>
 ```
 
 ```{r}
-data1 |> 
-  group_by(
-    Pclass,
-    Ticket_Pre
-  ) |> 
+train_clean |> 
+  group_by(Pclass, ticket_pre) |> 
   dplyr::count()
 ```
 
 ```{r inspect11}
-data1 |> pull(Ticket_Pre) |> head(n = 20) #See below for possible categorization and freq count
+train_clean |> pull(ticket_pre) |> head(n = 20) 
+
+#See below for possible categorization and freq count
 ```
 
 ## Inspection of `Cabin` variable {#sec-inspection-Cabin}
 
 ```{r}
-data1 <- 
-  data1 |>
+data1 <- train_clean |>
   mutate(Cabin_sector = ifelse(!is.na(Cabin), str_extract(Cabin, "[A-GT](?=[^A-GT]*$)"), NA)) # Extracts last occurrence of letter in Cabin string
 # --> Sector is looked at below together with Pclass
 ```
 
 ```{r}
-data1 <- 
-  data1 %>%
+data1 <- data1  |> 
   mutate(CabinNumber = 
            ifelse(!is.na(Cabin), #only process non-NA values
                   sapply(str_extract_all(Cabin, "\\d+"), function(x) { 
@@ -349,15 +311,11 @@ data1 |> # need to address the missing values
 
 ```{r}
 data1 |> 
-  filter(
-    !is.na(Survived)
-  ) |> 
-  ggplot(aes(x = Age, 
-             fill = Survived,
-             color = Survived)) +
-  geom_histogram(binwidth = 2,
-                 alpha = 0.5,
-                 position = "identity")
+  filter(!is.na(Survived) & !is.na(Age)) |> 
+  ggplot(aes(x = Age, fill = Survived, color = Survived)) +
+    geom_histogram(binwidth = 2,
+                   alpha = 0.5,
+                   position = "identity")
 ```
 
 ```{r}
@@ -403,7 +361,7 @@ table(data1$Survived, useNA = "ifany")
 table(data1$Cabin, useNA = "ifany")
 
 #for newly created column 'Prefixes'
-table(data1$Ticket_pre, useNA = "ifany")
+table(data1$ticket_pre, useNA = "ifany")
 # Could theoretically clean this column.. 
 # A./5., A.5., A/5, A/5. --> A/5
 # SOTON/O.Q., SOTON/O2, SOTON/OQ, STON/O, STON/O2. --> SOTON 
@@ -419,8 +377,8 @@ data1 |>
     Cabin,
     Cabin_sector,
     Ticket,
-    Ticket_Nr,
-    Ticket_Pre,
+    ticket_nr,
+    ticket_pre,
   ) |> 
   dplyr::group_by(
     Pclass
@@ -437,21 +395,21 @@ data1 |>
 data1 |> count(Pclass, Cabin_sector)
 # Pclass doesn't necessarily separate Cabin_sector
 
-data1 |> count(Pclass, Ticket_Pre)
+data1 |> count(Pclass, ticket_pre)
 # No real relation here either - check again
 ```
 
 ```{r}
 data1 |> 
   group_by(Pclass) |> 
-  count(Ticket_Pre) |> 
+  count(ticket_pre) |> 
   arrange(desc(n))
 ```
 
 ```{r}
 data1 |>
   group_by(Cabin_sector) |> 
-  count(Ticket_Pre)
+  count(ticket_pre)
 ```
 
 # Missing values
@@ -463,10 +421,104 @@ gg_miss_var(data1, show_pct = TRUE)
 naplot(naclus(data1))
 ```
 
-# Imputation ?
+# Imputation
 
-# Data preprocessing
+The in the `Name` variable is always followed by a `.` –\> we can easily extract using regex and create an overview of the mean age per title.
 
-### Split cabin from room number
+```{r}
+data_imput <- data1 |> 
+  filter(source == "train") |> 
+  mutate(title = str_extract(Name, ' ([A-Za-z]+)\\.'))
 
-### Look at relationships cabin vs. class etc
+data_imput |> 
+  group_by(title) |> 
+  summarise(mean_age = mean(Age, na.rm = T),
+            n = n()) |> 
+  arrange(desc(n))
+```
+
+Some insights:
+
+-   boys are called master, but unmarried (?) women are always called miss
+
+    -   this is a bit of issue, because the mean imputation will assign too high age values for girls travelling with their parents.
+
+    -   we could impute based on whether they travel alone or with their parents. This is likely only relevant for Miss, none of the other categories
+
+-   some categories only have very few people –\> we should group them a bit more, pooling will probably give a more accurate mean imputation
+
+```{r}
+data_imput <- data_imput |> 
+  mutate(title_group = case_when(
+      title %in% c(" Capt.", " Col.", " Major.") ~ "Officer",
+      title %in% c(" Jonkheer.", " Don.", " Sir.", " Dr.", " Rev.", " Countess.", " Lady.") ~ "Royalty",
+      title %in% c(" Mme.", " Ms.", " Mrs.") ~ "Mrs",
+      title %in% c(" Mlle.", " Miss.") ~ "Miss",
+      title == " Mr." ~ "Mr",
+      title == " Master." ~ "Master",
+      TRUE ~ title
+    ))
+  
+data_imput |> 
+  group_by(title_group, Pclass) |> 
+  summarise(mean_age = mean(Age, na.rm = T),
+            n = n(), .groups = "drop") |> 
+  arrange(title_group, Pclass)
+```
+
+```{r}
+# add functions which do the mean imputation
+# i would outsource these functions to RScripts to keep the document shorter
+
+# Function to extract and group titles
+create_title_groups <- function(data) {
+  data |> 
+    mutate(
+      title = str_extract(Name, ' ([A-Za-z]+)\\.'),
+      title_group = case_when(
+        title %in% c(" Capt.", " Col.", " Major.") ~ "Officer",
+        title %in% c(" Jonkheer.", " Don.", " Sir.", " Dr.", " Rev.", " Countess.", " Lady.") ~ "Royalty",
+        title %in% c(" Mme.", " Ms.", " Mrs.") ~ "Mrs",
+        title %in% c(" Mlle.", " Miss.") ~ "Miss",
+        title == " Mr." ~ "Mr",
+        title == " Master." ~ "Master",
+        TRUE ~ title
+      )
+    )
+}
+
+# Function to calculate mean ages by title and class
+calculate_group_means <- function(data) {
+   data |> 
+    filter(!is.na(Age)) |>
+    group_by(title_group, Pclass) |>
+    summarise(mean_age = mean(Age), .groups = "drop")
+}
+
+# Function to impute missing age
+# Join on title group we create above and PClass
+# IF Age is missing --> take imputed age (there is only one per title group and age)
+
+impute_missing_ages <- function(data) {
+  # Add title groups
+  data_with_titles <- create_title_groups(data)
+  
+  # Calculate mean ages for each title group and passenger class
+  group_means <- calculate_group_means(data_with_titles)
+  
+  # Impute missing ages
+  data_with_titles |>
+    left_join(group_means, by = c("title_group", "Pclass")) |>
+    mutate(Age = coalesce(Age, mean_age)) |>
+    select(-mean_age) # Remove the mean_age column after imputation
+}
+```
+
+```{r}
+#test imputation
+
+data1 |> 
+  filter(source == "train") |> 
+  impute_missing_ages() |> 
+  select(Name, Pclass, Age, Sex)
+```
