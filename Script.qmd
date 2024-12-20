@@ -18,8 +18,10 @@ author:
 # TODO
 
 -   Split cabin
--   Do a common train + test dataset to avoid duplicating the code?
 -   Think about imputation / try first imputation
+    -   imputation based on Title implemented, but for Miss do based on Parch –\> Johannes
+    -   Double check functions –\> Johannes
+-   Create histograms of variables and group by survived / didn't survive –\> Michael
 -   Choice of pred model
 
 # Log
@@ -158,31 +160,6 @@ We provide first an inspection of `Ticket`:
 # Data management
 
 ## Data cleaning
-
-```{r}
-#once we have discuseed this, we can remove the function, because we source
-
-# clean_data <- function(data) {
-#   
-#  ticket_pattern <- "^(?:(.*) )?([0-9]+)$"
-#  
-#  data |>
-#    # Convert variables to factors
-#    mutate(
-#      across(c("Survived", "Pclass", "Sex", "Embarked"), as.factor)
-#    ) |>
-#    # Handle empty strings
-#    mutate(
-#      Cabin = if_else(Cabin == "", NA, Cabin),
-#      Embarked = if_else(Embarked == "", NA, Embarked)
-#    ) |>
-#    # Extract ticket information 
-#    mutate(
-#      ticket_nr = str_replace(Ticket, ticket_pattern, "\\2"),
-#      ticket_pre = str_replace(Ticket, ticket_pattern, "\\1")
-#    )
-# }
-```
 
 ```{r}
 train_clean <- train |> clean_data()
@@ -427,12 +404,14 @@ The in the `Name` variable is always followed by a `.` –\> we can easily extra
 
 ```{r}
 data_imput <- data1 |> 
-  filter(source == "train") |> 
+  #filter(source == "train") |> 
   mutate(title = str_extract(Name, ' ([A-Za-z]+)\\.'))
 
 data_imput |> 
   group_by(title) |> 
   summarise(mean_age = mean(Age, na.rm = T),
+            min_age = min(Age, na.rm = T),
+            max_age = max(Age, na.rm = T),
             n = n()) |> 
   arrange(desc(n))
 ```
@@ -463,7 +442,7 @@ data_imput |>
   group_by(title_group, Pclass) |> 
   summarise(mean_age = mean(Age, na.rm = T),
             n = n(), .groups = "drop") |> 
-  arrange(title_group, Pclass)
+  arrange(title_group, Pclass) |> View()
 ```
 
 ```{r}
@@ -511,14 +490,41 @@ impute_missing_ages <- function(data) {
     left_join(group_means, by = c("title_group", "Pclass")) |>
     mutate(Age = coalesce(Age, mean_age)) |>
     select(-mean_age) # Remove the mean_age column after imputation
+  
 }
 ```
+
+data1 \|\>
+
+pull()
 
 ```{r}
 #test imputation
 
 data1 |> 
-  filter(source == "train") |> 
-  impute_missing_ages() |> 
-  select(Name, Pclass, Age, Sex)
+  mutate(title = str_extract(Name, ' ([A-Za-z]+)\\.')) |> 
+  filter(str_detect(title, "Miss")) |> 
+  group_by(Parch) |> 
+  summarise(mean_age = mean(Age, na.rm = TRUE),
+            n = n(),
+            min_age = min(Age, na.rm = TRUE),
+            max_age = max(Age, na.rm = TRUE))
+
+data1 |> 
+  mutate(title = str_extract(Name, ' ([A-Za-z]+)\\.')) |> 
+  filter(str_detect(title, "Miss")) |> 
+  group_by(Pclass, SibSp, Parch) |> 
+  summarise(mean_age = mean(Age, na.rm = TRUE),
+            n = n(),
+            min_age = min(Age, na.rm = TRUE),
+            max_age = max(Age, na.rm = TRUE))
+
+data1 |> 
+  mutate(title = str_extract(Name, ' ([A-Za-z]+)\\.')) |> 
+  filter(str_detect(title, "Miss")) |> 
+  ggplot(aes(x = Age)) +
+  geom_histogram() +
+  facet_wrap(~ Parch)
+
+# this looks quite good. We should delete the imputation for miss based on Pclass and impute it according to Parch. 
 ```
