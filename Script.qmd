@@ -19,9 +19,8 @@ author:
 
 -   Split cabin
 -   Think about imputation / try first imputation
-    -   imputation based on Title implemented, but for Miss do based on Parch –\> Johannes
-    -   Double check functions –\> Johannes
--   Create histograms of variables and group by survived / didn't survive –\> Michael
+    -   imputation based on Title implemented, but for Miss do based on Parch --\> Johannes
+    -   Double check functions --\> Johannes
 -   Choice of pred model
 
 # Log
@@ -74,6 +73,7 @@ if(!require("tidymodels")){
 ```{r custom-functions}
 source("functions/mean_imput_missing_age.R")
 source("functions/clean_data.R")
+source("functions/plot_helper.R")
 ```
 
 # Introduction and setup {#sec-introduction}
@@ -317,6 +317,24 @@ hist(data1$SibSp)
 # Child = daughter, son, stepdaughter, stepson
 # Some children travelled only with a nanny, therefore parch=0 for them.
 hist(data1$Parch)
+
+# By survival
+# Define the variables to plot
+variables <- c("Age", "Fare", "SibSp", "Parch")
+categorical_vars <- c("Sex", "Pclass", "Embarked")
+
+# Call the functions
+hist_plots <- create_histograms(data1, variables, group_var = "Survived")
+bar_charts <- create_bar_charts(data1, categorical_vars, group_var = "Survived")
+
+# Print the plots
+for (var in variables) {
+  print(hist_plots[[var]])  # Display the plot
+}
+for (var in categorical_vars) {
+  print(bar_charts[[var]])
+}
+
 ```
 
 ### Frequency tables
@@ -400,7 +418,7 @@ naplot(naclus(data1))
 
 # Imputation
 
-The in the `Name` variable is always followed by a `.` –\> we can easily extract using regex and create an overview of the mean age per title.
+The in the `Name` variable is always followed by a `.` --\> we can easily extract using regex and create an overview of the mean age per title.
 
 ```{r}
 data_imput <- data1 |> 
@@ -424,7 +442,7 @@ Some insights:
 
     -   we could impute based on whether they travel alone or with their parents. This is likely only relevant for Miss, none of the other categories
 
--   some categories only have very few people –\> we should group them a bit more, pooling will probably give a more accurate mean imputation
+-   some categories only have very few people --\> we should group them a bit more, pooling will probably give a more accurate mean imputation
 
 ```{r}
 data_imput <- data_imput |> 
