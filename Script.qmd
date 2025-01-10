@@ -17,10 +17,11 @@ author:
 
 # TODO
 
--   Split cabin
 -   Think about imputation / try first imputation
-    -   imputation based on Title implemented, but for Miss do based on Parch --\> Johannes
-    -   Double check functions --\> Johannes
+    -   imputation based on Title implemented, **but for Miss do based on Parch** -\> Johannes
+    -   Double check functions --\> **Johannes**
+-   Google Search what coabin prefixes and embarquement actually mean –\> Thomas
+-   Clean up and standardise code, except for imputation -\> Thomas
 -   Choice of pred model
 
 # Log
@@ -152,7 +153,8 @@ gg_miss_var(train, show_pct = TRUE) #very likely to be incorrect, that only Age 
 
 We provide first an inspection of `Ticket`:
 
-```{r inspection-ticket-head} data1 |> pull(Ticket) |> head(n = 20)}
+```{r inspection-ticket-head}
+train |> pull(Ticket) |> head(n = 20)
 ```
 
 **Remarks:** While it seems the data are not structured, it looks like there are two parts in the `Ticket` variable: a prefix and a ticket number. We will separate them in during data cleaning.
@@ -177,6 +179,15 @@ We provide again a description of the number of missing values., with `gg_miss_v
 
 ```{r}
 gg_miss_var(train_clean, show_pct = TRUE)
+
+# checking if cabin is missing also for first class passengers. Maybe high missingness in third class simply indicated that they did not have a cabin
+
+#we we could also check with age. -> maybe first class children did not get assigned a cabin number? Or maybe other groups?
+
+train_clean |> 
+  mutate(Cabin = if_else(!is.na(Cabin), "not missing", NA)) |> 
+  group_by(Pclass) |> 
+  count(Cabin)
 ```
 
 **Remarks:**
@@ -194,11 +205,13 @@ Is there any association between ticket pre and the type of Cabin?
 
 ```{r}
 train_clean |> 
-  dplyr::select(PassengerId, Cabin, ticket_pre)|> 
+  select(PassengerId, Cabin, ticket_pre)|> 
   group_by(ticket_pre, Cabin) |> 
-  arrange(Cabin) |> 
+  arrange(Cabin)
+
+#extract letter from cabin -> compare again with ticket_pre to have larger groups
   count() |> 
-  dplyr::mutate(
+  mutate(
     prop = n/sum(n)
   )
 ```
@@ -206,32 +219,37 @@ train_clean |>
 ```{r}
 train_clean |> 
   group_by(Pclass, ticket_pre) |> 
-  dplyr::count()
-```
+  count()
 
-```{r inspect11}
-train_clean |> pull(ticket_pre) |> head(n = 20) 
-
-#See below for possible categorization and freq count
+#prefixes are not the same for the classes ? What do the prefixes mean ? I think we have to google search the meaning of the prefixes
 ```
 
 ## Inspection of `Cabin` variable {#sec-inspection-Cabin}
 
 ```{r}
 data1 <- train_clean |>
-  mutate(Cabin_sector = ifelse(!is.na(Cabin), str_extract(Cabin, "[A-GT](?=[^A-GT]*$)"), NA)) # Extracts last occurrence of letter in Cabin string
-# --> Sector is looked at below together with Pclass
+  # Extracts last occurrence of letter in Cabin string --> Sector is looked at
+  # below together with Pclass
+  mutate(Cabin_sector = ifelse(
+    !is.na(Cabin), 
+    str_extract(Cabin, "[A-GT](?=[^A-GT]*$)"), 
+    NA)) 
+
+
 ```
 
 ```{r}
 data1 <- data1  |> 
   mutate(CabinNumber = 
-           ifelse(!is.na(Cabin), #only process non-NA values
-                  sapply(str_extract_all(Cabin, "\\d+"), function(x) { 
-                    # Iterates through the list of extracted numbers (x)
-                    # "B23 B25 B27" → c("23", "25", "27")  
-                    if (length(x) > 0) {
-                      max(as.numeric(x)) # Calculate max() and convert to numeric format
+           ifelse(
+             #only process non-NA values
+             !is.na(Cabin),
+             # Iterates through the list of extracted numbers (x)
+             # "B23 B25 B27" → c("23", "25", "27")  
+             sapply(str_extract_all(Cabin, "\\d+"), function(x) {
+               if (length(x) > 0) {
+                      # Calculate max() and convert to numeric format
+                      max(as.numeric(x)) 
                     } else {NA
                         }
                     }
@@ -239,6 +257,8 @@ data1 <- data1  |>
                   NA
                   )
          ) #Extracted highest number from Cabin; NA if no number
+
+# Commment Johannes : i would have extracted slightly differently. Create cabin_sector_1, cabin_sector_2 up to n, the same for cabin_number, and then extract all the values and not choose the max. 
 ```
 
 ```{r}
@@ -288,11 +308,47 @@ data1 |> # need to address the missing values
 
 ```{r}
 data1 |> 
-  filter(!is.na(Survived) & !is.na(Age)) |> 
+  filter(!is.na(Age)) |> 
+  mutate(cabin_missing = if_else(is.na(Cabin), "Yes", "No")) |> 
   ggplot(aes(x = Age, fill = Survived, color = Survived)) +
     geom_histogram(binwidth = 2,
                    alpha = 0.5,
                    position = "identity")
+
+data1 |> 
+  filter(!is.na(Survived) & !is.na(Age)) |> 
+  mutate(cabin_missing = if_else(is.na(Cabin), "Yes", "No")) |> 
+  ggplot(aes(x = Age, fill = Survived, color = Survived)) +
+    geom_histogram(binwidth = 2,
+                   alpha = 0.5,
+                   position = "identity") + 
+  facet_wrap(~Pclass)
+
+data1 |> 
+  group_by(Pclass) |> 
+  count(Survived) |> 
+  mutate(prop = n / sum(n)) |> 
+  filter(Survived == "1")
+
+#check if difference significant
+m_pclass <- glm(Survived ~ Pclass, data = data1, family = 'binomial')
+summary(m_pclass)
+
+m_age <- glm(Survived ~ Age, data = data1, family = 'binomial')
+summary(m_age)
+
+m_age_q <- glm(Survived ~ Age + I(Age^2), data = data1, family = 'binomial')
+summary(m_age_q)
+
+data_age_dic <- data1 |> 
+  mutate(age_class = case_when(
+    Age < 13 ~ "minor", 
+    Age >= 13 ~ "adult", 
+    TRUE ~ NA_character_
+  ))
+
+m_age_dic <- glm(Survived ~ age_class, data = data_age_dic, family = 'binomial')
+summary(m_age_dic)
 ```
 
 ```{r}
@@ -460,7 +516,14 @@ data_imput |>
   group_by(title_group, Pclass) |> 
   summarise(mean_age = mean(Age, na.rm = T),
             n = n(), .groups = "drop") |> 
-  arrange(title_group, Pclass) |> View()
+  arrange(title_group, Pclass)
+
+data_imput |> 
+  ggplot(aes(x = Age, fill = Survived, color = Survived)) +
+    geom_histogram(binwidth = 2,
+                   alpha = 0.5,
+                   position = "identity") + 
+  facet_wrap(~title_group)
 ```
 
 ```{r}
