@@ -15,26 +15,32 @@ author:
     orcid: 0000-0001-8172-5326
 ---
 
-# TODO
+## TODO
 
 -   Think about imputation / try first imputation
-    -   imputation based on Title implemented, **but for Miss do based on Parch** -\> Johannes
-    -   Double check functions --\> **Johannes**
--   Google Search what coabin prefixes and embarquement actually mean –\> Thomas
+    -   DONE imputation based on Title implemented, **but for Miss do based on Parch** -\> Johannes
+    -   DONE Double check functions --\> **Johannes**
+    -   TODO impute fare and embarkment
+-   Google Search what cabin prefixes and embarquement actually mean –\> Thomas
 -   Clean up and standardise code, except for imputation -\> Thomas
 -   Choice of pred model
+-   After googling :
+    -   If woman died --\> families died
+    -   So if women travelling with kids, women dies –\> kids die
 
-# Log
+## Log
 
-## 2024-12-06
+### 2024-12-06
 
 -   Data overview
 -   Reformatting
 
-## 2024-12-13
+### 2024-12-13
 
 -   Reformatting and cleaning Quarto document & chunks
 -   Added df-print to the Quarto file above, the html output reads much better
+
+## Loading packages
 
 ```{r packages}
 #| warning: false
@@ -69,6 +75,12 @@ if(!require("tidymodels")){
   library("tidymodels")                                                          
   # modelling
 }
+
+if(!require("patchwork")){
+  install.packages("patchwork")
+  library("patchwork")                                                          
+  # modelling
+}
 ```
 
 ```{r custom-functions}
@@ -77,11 +89,11 @@ source("functions/clean_data.R")
 source("functions/plot_helper.R")
 ```
 
-# Introduction and setup {#sec-introduction}
+## Introduction and setup {#sec-introduction}
 
 In the present Quarto document, we report our commonly developed solution to obtain predictions as part of a Kaggle competition (<https://www.kaggle.com/competitions/titanic/code>).
 
-## Expected output {#sec-expected-output}
+### Expected output {#sec-expected-output}
 
 In short, the aim of the competition is to predict, as accurately as possible, the survival status of passengers of Titanic using individual data (*i.e.*, name, age, sex, socio-economic status, etc...).
 
@@ -95,11 +107,11 @@ submission_example <- read.csv("data/gender_submission.csv")
 head(submission_example, n = 10)
 ```
 
-## Available datasets
+### Available datasets
 
 Two datasets are made readily available by the Kaggle competition authors.
 
-### Test set
+#### Test set
 
 The set of `PassengerId` expected in the output (see [-@sec-expected-output]) actually corresponds to the set of `PassengerId` of the so-called `test` dataset.
 
@@ -110,7 +122,7 @@ test <- read.csv("data/test.csv") # test data
 test |> head(n = 10)
 ```
 
-### Train set
+#### Train set
 
 When we develop a prediction model, we usually train the prediction model using the so-called `train` data set. We load this data using again `read.csv()`:
 
@@ -121,7 +133,7 @@ train |> head(n = 10)
 
 **Remarks**: It looks like the `train` and `test` datasets are composed of the same number of variables. It is not necessarily always the case. Indeed, while variables could be available in a given data set, they are not always available in another data set. Therefore, each variable used in a prediction model should be carefully inspected both for availability and completeness in the two `training` and the `test` sets. We provide a more detailed inspection in the following section.
 
-# Data inspection (pre cleaning)
+## Data inspection (pre cleaning)
 
 We already had a look a the training data above using `head()`. Let's inspect some more.
 
@@ -159,9 +171,9 @@ train |> pull(Ticket) |> head(n = 20)
 
 **Remarks:** While it seems the data are not structured, it looks like there are two parts in the `Ticket` variable: a prefix and a ticket number. We will separate them in during data cleaning.
 
-# Data management
+## Data management
 
-## Data cleaning
+### Data cleaning
 
 ```{r}
 train_clean <- train |> clean_data()
@@ -195,9 +207,9 @@ train_clean |>
 -   `Cabin`: has a high proportion of missing
 -   `Age`: has a high number of missing.
 
-# Inspection after cleaning
+## Inspection after cleaning
 
-## Inspection of `Ticket` variable {#sec-inspection-Ticket}
+### Inspection of `Ticket` variable {#sec-inspection-Ticket}
 
 #### Relation between prefix and Cabin?
 
@@ -207,7 +219,7 @@ Is there any association between ticket pre and the type of Cabin?
 train_clean |> 
   select(PassengerId, Cabin, ticket_pre)|> 
   group_by(ticket_pre, Cabin) |> 
-  arrange(Cabin)
+  arrange(Cabin) |> 
 
 #extract letter from cabin -> compare again with ticket_pre to have larger groups
   count() |> 
@@ -224,7 +236,7 @@ train_clean |>
 #prefixes are not the same for the classes ? What do the prefixes mean ? I think we have to google search the meaning of the prefixes
 ```
 
-## Inspection of `Cabin` variable {#sec-inspection-Cabin}
+### Inspection of `Cabin` variable {#sec-inspection-Cabin}
 
 ```{r}
 data1 <- train_clean |>
@@ -265,7 +277,7 @@ data1 <- data1  |>
 data1$CabinNumber |> head(n = 10)
 ```
 
-## Inspection of `Name` variable {#sec-inspection-Name}
+### Inspection of `Name` variable {#sec-inspection-Name}
 
 ```{r inspect13}
 data1 |> arrange(Name) |> head(Name, n = 10) #There are some additional names listed for some patients - Why is this? 
@@ -289,9 +301,9 @@ data1 |> arrange(Name) |> head(Name, n = 10) #There are some additional names li
   # Some children travelled only with a nanny, therefore parch=0 for them.
 ```
 
-## Data visualization
+### Data visualization
 
-## Inspection of age
+#### Inspection of age
 
 ```{r}
 data1 |> # need to address the missing values
@@ -304,7 +316,7 @@ data1 |> # need to address the missing values
                  position = "identity")
 ```
 
-### Histograms
+#### Histograms
 
 ```{r}
 data1 |> 
@@ -393,7 +405,7 @@ for (var in categorical_vars) {
 
 ```
 
-### Frequency tables
+#### Frequency tables
 
 ```{r}
 # For data1$Sex
@@ -463,7 +475,7 @@ data1 |>
   count(ticket_pre)
 ```
 
-# Missing values
+## Missing values
 
 ```{r}
 gg_miss_var(data1, show_pct = TRUE)
@@ -472,7 +484,7 @@ gg_miss_var(data1, show_pct = TRUE)
 naplot(naclus(data1))
 ```
 
-# Imputation
+## Imputation
 
 The in the `Name` variable is always followed by a `.` --\> we can easily extract using regex and create an overview of the mean age per title.
 
@@ -492,120 +504,103 @@ data_imput |>
 
 Some insights:
 
--   boys are called master, but unmarried (?) women are always called miss
+-   Boys are called master, but unmarried (?) women are always called miss
 
     -   this is a bit of issue, because the mean imputation will assign too high age values for girls travelling with their parents.
 
     -   we could impute based on whether they travel alone or with their parents. This is likely only relevant for Miss, none of the other categories
 
--   some categories only have very few people --\> we should group them a bit more, pooling will probably give a more accurate mean imputation
+    -   Unmarried women are called Miss. This is a problem, because they might be children or adults. This category is likely very important for prediction of mortality.
+
+        -   Solution: mean imputation for passengers with title "Miss" according to Parch.
+
+            -   If a Miss travels with parents or children she is highly likely to be a minor.
+
+            -   An unmarried women is unlikely to travel with children, so she's usually a child travelling with parents.
+
+Explanation of cleaning function:
+
+-   First, it creates title groups from passengers' names using `create_title_groups()`:
+
+    -    Extracts titles from names (like Mr., Mrs., etc.)
+
+    -    Groups similar titles together (e.g., "Officer" for Capt., Col., Major)
+
+    -    Creates categories: Officer, Royalty, Mrs, Miss, Mr, and Master
+
+<!-- -->
+
+-   Then it calculates two different types of mean ages:
+
+    -    `calculate_age_means()`: Computes mean ages based on title group and passenger class (Pclass)
+
+    -   `calculate_age_means2()`: Computes more specific mean ages based on title group, passenger class, AND number of parents/children (Parch)
+
+<!-- -->
+
+-   Finally, it imputes missing ages using this logic:
+
+    -   If age is not missing, keep the original age
+
+    -   If age is missing and title group is NOT "Miss", use the first mean (based on title and class)
+
+    -   If age is missing and title group IS "Miss", use the second mean (based on title, class, and Parch)
 
 ```{r}
-data_imput <- data_imput |> 
-  mutate(title_group = case_when(
-      title %in% c(" Capt.", " Col.", " Major.") ~ "Officer",
-      title %in% c(" Jonkheer.", " Don.", " Sir.", " Dr.", " Rev.", " Countess.", " Lady.") ~ "Royalty",
-      title %in% c(" Mme.", " Ms.", " Mrs.") ~ "Mrs",
-      title %in% c(" Mlle.", " Miss.") ~ "Miss",
-      title == " Mr." ~ "Mr",
-      title == " Master." ~ "Master",
-      TRUE ~ title
-    ))
-  
-data_imput |> 
-  group_by(title_group, Pclass) |> 
-  summarise(mean_age = mean(Age, na.rm = T),
-            n = n(), .groups = "drop") |> 
-  arrange(title_group, Pclass)
+# applying the age imputation pipe
 
-data_imput |> 
+data_imput <- data1 |> 
+  mean_impute_missing_age()
+
+m1 <- glm(Survived ~ Age + I(Age^2), data = data_imput, family = "binomial")
+summary(m1)
+
+# comparison of age distribution according to title and outcome before and after imputation
+p1 <- data1 |> 
+  create_title_groups() |> 
   ggplot(aes(x = Age, fill = Survived, color = Survived)) +
     geom_histogram(binwidth = 2,
                    alpha = 0.5,
                    position = "identity") + 
-  facet_wrap(~title_group)
-```
+  facet_wrap(~title_group) +
+  theme_minimal() +
+  ggtitle('Not imputed')
 
-```{r}
-# add functions which do the mean imputation
-# i would outsource these functions to RScripts to keep the document shorter
+p2 <- data_imput |> 
+  ggplot(aes(x = Age, fill = Survived, color = Survived)) +
+    geom_histogram(binwidth = 2,
+                   alpha = 0.5,
+                   position = "identity") + 
+  facet_wrap(~title_group) +
+  theme_minimal() +
+  ggtitle('Imputed')
 
-# Function to extract and group titles
-create_title_groups <- function(data) {
-  data |> 
-    mutate(
-      title = str_extract(Name, ' ([A-Za-z]+)\\.'),
-      title_group = case_when(
-        title %in% c(" Capt.", " Col.", " Major.") ~ "Officer",
-        title %in% c(" Jonkheer.", " Don.", " Sir.", " Dr.", " Rev.", " Countess.", " Lady.") ~ "Royalty",
-        title %in% c(" Mme.", " Ms.", " Mrs.") ~ "Mrs",
-        title %in% c(" Mlle.", " Miss.") ~ "Miss",
-        title == " Mr." ~ "Mr",
-        title == " Master." ~ "Master",
-        TRUE ~ title
-      )
-    )
-}
+p1 / p2 +
+  plot_annotation(
+    title = "Distribution of age by title"
+  )
 
-# Function to calculate mean ages by title and class
-calculate_group_means <- function(data) {
-   data |> 
-    filter(!is.na(Age)) |>
-    group_by(title_group, Pclass) |>
-    summarise(mean_age = mean(Age), .groups = "drop")
-}
 
-# Function to impute missing age
-# Join on title group we create above and PClass
-# IF Age is missing --> take imputed age (there is only one per title group and age)
+#comparison for miss specifically
 
-impute_missing_ages <- function(data) {
-  # Add title groups
-  data_with_titles <- create_title_groups(data)
-  
-  # Calculate mean ages for each title group and passenger class
-  group_means <- calculate_group_means(data_with_titles)
-  
-  # Impute missing ages
-  data_with_titles |>
-    left_join(group_means, by = c("title_group", "Pclass")) |>
-    mutate(Age = coalesce(Age, mean_age)) |>
-    select(-mean_age) # Remove the mean_age column after imputation
-  
-}
-```
-
-data1 \|\>
-
-pull()
-
-```{r}
-#test imputation
-
-data1 |> 
-  mutate(title = str_extract(Name, ' ([A-Za-z]+)\\.')) |> 
-  filter(str_detect(title, "Miss")) |> 
-  group_by(Parch) |> 
-  summarise(mean_age = mean(Age, na.rm = TRUE),
-            n = n(),
-            min_age = min(Age, na.rm = TRUE),
-            max_age = max(Age, na.rm = TRUE))
-
-data1 |> 
-  mutate(title = str_extract(Name, ' ([A-Za-z]+)\\.')) |> 
-  filter(str_detect(title, "Miss")) |> 
-  group_by(Pclass, SibSp, Parch) |> 
-  summarise(mean_age = mean(Age, na.rm = TRUE),
-            n = n(),
-            min_age = min(Age, na.rm = TRUE),
-            max_age = max(Age, na.rm = TRUE))
-
-data1 |> 
-  mutate(title = str_extract(Name, ' ([A-Za-z]+)\\.')) |> 
+p3 <- data1 |> 
+  create_title_groups() |> 
   filter(str_detect(title, "Miss")) |> 
   ggplot(aes(x = Age)) +
   geom_histogram() +
-  facet_wrap(~ Parch)
+  facet_wrap(~ Parch) +
+  ggtitle('Not imputed')
 
-# this looks quite good. We should delete the imputation for miss based on Pclass and impute it according to Parch. 
+p4 <- data_imput |> 
+  filter(str_detect(title, "Miss")) |> 
+  ggplot(aes(x = Age)) +
+  geom_histogram() +
+  facet_wrap(~ Parch) +
+    ggtitle('Imputed')
+
+p3 / p4 +
+  plot_annotation(
+    title = "Distribution of age by number of parents or children",
+    subtitle = "For travelers with the title 'Miss.'"
+  )
 ```
