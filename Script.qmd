@@ -20,7 +20,11 @@ author:
 -   Think about imputation / try first imputation
     -   DONE imputation based on Title implemented, **but for Miss do based on Parch** -\> Johannes
     -   DONE Double check functions --\> **Johannes**
-    -   TODO impute fare and embarkment
+    -   **TODO impute fare and embarkment**
+        -   impute the two missing values as southampton
+        -   remove zeroes from fare and impute with mean from Pclass
+    -   TODO add columns for children who travelled with mom / mom traveling with children
+    -   TODO We need an indicator for the family unit
 -   Google Search what cabin prefixes and embarquement actually mean –\> Thomas
 -   Clean up and standardise code, except for imputation -\> Thomas
 -   Choice of pred model
@@ -603,4 +607,35 @@ p3 / p4 +
     title = "Distribution of age by number of parents or children",
     subtitle = "For travelers with the title 'Miss.'"
   )
+
+
+data_imput |> 
+  group_by(ticket_nr) |> 
+  filter(
+    n() > 1, 
+    Parch > 0, 
+    #any(title_group == "Mr"),
+    any(title_group == "Mrs" & Survived == 0)
+    )|>  # Added this condition)
+  arrange(ticket_nr) |> 
+  View()
+```
+
+```{r}
+data_imput |> 
+  filter(!is.na(Embarked)) |> 
+  ggplot(aes(x = Fare, color = Pclass, fill = Pclass)) +
+  geom_histogram(alpha = 0.2, bins = 70, position = "identity") +
+  facet_wrap(~ Embarked)
+```
+
+### Adding family indicators
+
+-   We want an indicator for a mom travelling with children
+
+-   And an indicator for children travelling with a mom
+
+```{r}
+data_imput |> 
+  
 ```
