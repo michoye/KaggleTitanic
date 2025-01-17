@@ -522,17 +522,17 @@ Explanation of cleaning function:
 
 -   First, it creates title groups from passengers' names using `create_title_groups()`:
 
-    -    Extracts titles from names (like Mr., Mrs., etc.)
+    -   Extracts titles from names (like Mr., Mrs., etc.)
 
-    -    Groups similar titles together (e.g., "Officer" for Capt., Col., Major)
+    -   Groups similar titles together (e.g., "Officer" for Capt., Col., Major)
 
-    -    Creates categories: Officer, Royalty, Mrs, Miss, Mr, and Master
+    -   Creates categories: Officer, Royalty, Mrs, Miss, Mr, and Master
 
 <!-- -->
 
 -   Then it calculates two different types of mean ages:
 
-    -    `calculate_age_means()`: Computes mean ages based on title group and passenger class (Pclass)
+    -   `calculate_age_means()`: Computes mean ages based on title group and passenger class (Pclass)
 
     -   `calculate_age_means2()`: Computes more specific mean ages based on title group, passenger class, AND number of parents/children (Parch)
 
