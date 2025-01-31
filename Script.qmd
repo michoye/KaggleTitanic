@@ -20,17 +20,14 @@ author:
 -   Think about imputation / try first imputation
     -   DONE imputation based on Title implemented, **but for Miss do based on Parch** -\> Johannes
     -   DONE Double check functions --\> **Johannes**
-    -   **TODO impute fare and embarkment**
-        -   impute the two missing values as southampton
-        -   remove zeroes from fare and impute with mean from Pclass
-    -   TODO add columns for children who travelled with mom / mom traveling with children
-    -   TODO We need an indicator for the family unit
+    -   DONE impute fare and embarkment –\> Michael / Thomas
+    -   ABORT add columns for children who travelled with mom / mom traveling with children -\> see below
+        -   After googling :
+            -   If woman died --\> families died
+            -   So if women travelling with kids, women dies --\> kids die
 -   Google Search what cabin prefixes and embarquement actually mean --\> Thomas
 -   Clean up and standardise code, except for imputation -\> Thomas
 -   Choice of pred model
--   After googling :
-    -   If woman died --\> families died
-    -   So if women travelling with kids, women dies --\> kids die
 
 ## Log
 
@@ -43,6 +40,11 @@ author:
 
 -   Reformatting and cleaning Quarto document & chunks
 -   Added df-print to the Quarto file above, the html output reads much better
+
+### 2025-01-31
+
+-   Imputed Fare (if 0) and Embarked (if missing) values
+-   Looked into Family unit. Decided to not pursue: too many DOF
 
 ## Loading packages
 
@@ -91,6 +93,7 @@ if(!require("patchwork")){
 source("functions/mean_imput_missing_age.R")
 source("functions/clean_data.R")
 source("functions/plot_helper.R")
+source("functions/mean_impute_avg_fare.R")
 ```
 
 ## Introduction and setup {#sec-introduction}
@@ -619,7 +622,14 @@ data_imput |>
     )|>  # Added this condition)
   arrange(ticket_nr) |> 
   View()
+
 ```
+
+### I**mpute fare and embarkment**
+
+-   impute the two missing values as southampton
+
+-   remove zeroes from fare and impute with mean from Pclass
 
 ```{r}
 data_imput |> 
@@ -627,6 +637,24 @@ data_imput |>
   ggplot(aes(x = Fare, color = Pclass, fill = Pclass)) +
   geom_histogram(alpha = 0.2, bins = 70, position = "identity") +
   facet_wrap(~ Embarked)
+```
+
+```{r}
+# Impute the two missing values as southampton
+
+data_imput <- data_imput |>
+  mutate(Embarked = case_when(
+    is.na(Embarked) ~ "S",
+    !is.na(Embarked) ~ Embarked
+  ))
+```
+
+```{r}
+# Fares imputed
+# Remove zeroes from fare and impute with mean from Pclass
+
+data_imput <- data_imput |> 
+  mean_impute_avg_fare()
 ```
 
 ### Adding family indicators
@@ -637,67 +665,69 @@ data_imput |>
 
 Note:
 
-Not sure whether we should add these variables this way. Added value comes from family unit (Mother + child units) as these often Survived or Died together. Just adding the columns 'Mother(OnDuty)' and/or 'Children(InCare)' doesn't necessarily add value and can quite easily be derived by the existing columns age and/or gender. So either go for the variable family unit and create many different categories or leave them out.
+Not sure whether we should add these variables this way. Added value comes from family unit (Mother + child units) as these often Survived or Died together. Just adding the columns 'Mother(OnDuty)' and/or 'Children(InCare)' doesn't necessarily add value and can quite easily be derived by the existing columns age and/or gender. So either go for the variable family unit and create many different categories or **leave them out.**
 
 ```{r}
-# Mom with children
-data_imput |> 
-    dplyr::select(
-        Survived,
-        title,
-        Name, 
-        Sex, 
-        Age, 
-        SibSp, 
-        Parch,
-        Ticket, 
-        Cabin
-    ) |> 
-    filter(Parch >= 1) |> 
-    group_by(Ticket) |> 
-    filter(n() >= 2) |>  # Ensure at least 2 instances per Ticket group
-    ungroup() |> 
-    filter(Sex == "female") |>  # Keep only females
-    group_by(Ticket) |> 
-    slice_max(Age, n = 1, with_ties = FALSE) |>  # Oldest female in each Ticket group
-    ungroup() |> 
-    filter(title == " Mrs.") |>  # Filter by title
-    View()
-
-# New column created
-data_imput <- data_imput |> 
-    dplyr::mutate(
-        MotherOnDuty = if_else(
-            Parch >= 1 & 
-            Sex == "female" & 
-            title == " Mrs." & 
-            Ticket %in% (
-                data_imput |>
-                    filter(Parch >= 1) |> 
-                    group_by(Ticket) |> 
-                    filter(n() >= 2) |> 
-                    pull(Ticket)
-            ),
-            1, 
-            0
-        )
-    )
+# # Mom with children
+# data_imput |> 
+#     dplyr::select(
+#         Survived,
+#         title,
+#         Name, 
+#         Sex, 
+#         Age, 
+#         SibSp, 
+#         Parch,
+#         Ticket, 
+#         Cabin
+#     ) |> 
+#     filter(Parch >= 1) |> 
+#     group_by(Ticket) |> 
+#     filter(n() >= 2) |>  # Ensure at least 2 instances per Ticket group
+#     ungroup() |> 
+#     filter(Sex == "female") |>  # Keep only females
+#     group_by(Ticket) |> 
+#     slice_max(Age, n = 1, with_ties = FALSE) |>  # Oldest female in each Ticket group
+#     ungroup() |> 
+#     filter(title == " Mrs.") |>  # Filter by title
+#     View()
+# 
+# # New column created
+# data_imput <- data_imput |> 
+#     dplyr::mutate(
+#         MotherOnDuty = if_else(
+#             Parch >= 1 & 
+#             Sex == "female" & 
+#             title == " Mrs." & 
+#             Ticket %in% (
+#                 data_imput |>
+#                     filter(Parch >= 1) |> 
+#                     group_by(Ticket) |> 
+#                     filter(n() >= 2) |> 
+#                     pull(Ticket)
+#             ),
+#             1, 
+#             0
+#         )
+#     )
 ```
 
 ```{r}
-# Children
-data_imput |> 
-    dplyr::select(
-        Survived,
-        title,
-        Name, 
-        Sex, 
-        Age, 
-        SibSp, 
-        Parch,
-        Ticket, 
-        Cabin
-    ) |> 
-    filter(Parch >= 1, title == " Miss." | title == " Master.") |> 
-  view()
+# # Children
+# data_imput |> 
+#     dplyr::select(
+#         Survived,
+#         title,
+#         Name, 
+#         Sex, 
+#         Age, 
+#         SibSp, 
+#         Parch,
+#         Ticket, 
+#         Cabin
+#     ) |> 
+#     filter(Parch >= 1, title == " Miss." | title == " Master.") |> 
+#   view()
 ```
+
+### 
