@@ -87,6 +87,12 @@ if(!require("patchwork")){
   library("patchwork")                                                          
   # modelling
 }
+
+if(!require("tidymodels")){
+  install.packages("tidymodels")
+  library("tidymodels")                                                          
+  # modelling
+}
 ```
 
 ```{r custom-functions}
@@ -656,6 +662,37 @@ data_imput <- data_imput |>
 data_imput <- data_imput |> 
   mean_impute_avg_fare()
 ```
+
+### Impute missing Cabin values with "None"
+
+```{r}
+data_imput <- data_imput |> 
+  mutate(
+    Cabin = if_else(is.na(Cabin), "None", Cabin),
+    Cabin_sector = if_else(is.na(Cabin_sector), "None", Cabin_sector),
+    CabinNumber = if_else(is.na(CabinNumber), "None", as.character(CabinNumber))
+  )
+
+names(data_imput)
+
+analysis_data <- data_imput |> 
+  select(-c("PassengerId", "CabinNumber", "Name", "Ticket", "title", "mean_age_1", "mean_age_2", "avg_fare"))
+```
+
+## Model building
+
+```{r}
+glm_net_mod <- logistic_reg() |>  
+  set_engine("glmnet")
+
+glm_net_fit <- 
+  glm_net_mod |>  
+  fit(Survived ~ ., data = analysis_data)
+
+
+```
+
+## Old Code
 
 ### Adding family indicators
 
