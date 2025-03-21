@@ -20,17 +20,14 @@ author:
 -   Think about imputation / try first imputation
     -   DONE imputation based on Title implemented, **but for Miss do based on Parch** -\> Johannes
     -   DONE Double check functions --\> **Johannes**
-    -   **TODO impute fare and embarkment**
-        -   impute the two missing values as southampton
-        -   remove zeroes from fare and impute with mean from Pclass
-    -   TODO add columns for children who travelled with mom / mom traveling with children
-    -   TODO We need an indicator for the family unit
--   Google Search what cabin prefixes and embarquement actually mean –\> Thomas
+    -   DONE impute fare and embarkment –\> Michael / Thomas
+    -   ABORT add columns for children who travelled with mom / mom traveling with children -\> see below
+        -   After googling :
+            -   If woman died --\> families died
+            -   So if women travelling with kids, women dies --\> kids die
+-   Google Search what cabin prefixes and embarquement actually mean --\> Thomas
 -   Clean up and standardise code, except for imputation -\> Thomas
 -   Choice of pred model
--   After googling :
-    -   If woman died --\> families died
-    -   So if women travelling with kids, women dies –\> kids die
 
 ## Log
 
@@ -43,6 +40,11 @@ author:
 
 -   Reformatting and cleaning Quarto document & chunks
 -   Added df-print to the Quarto file above, the html output reads much better
+
+### 2025-01-31
+
+-   Imputed Fare (if 0) and Embarked (if missing) values
+-   Looked into Family unit. Decided to not pursue: too many DOF
 
 ## Loading packages
 
@@ -85,12 +87,19 @@ if(!require("patchwork")){
   library("patchwork")                                                          
   # modelling
 }
+
+if(!require("tidymodels")){
+  install.packages("tidymodels")
+  library("tidymodels")                                                          
+  # modelling
+}
 ```
 
 ```{r custom-functions}
 source("functions/mean_imput_missing_age.R")
 source("functions/clean_data.R")
 source("functions/plot_helper.R")
+source("functions/mean_impute_avg_fare.R")
 ```
 
 ## Introduction and setup {#sec-introduction}
@@ -621,6 +630,12 @@ data_imput |>
   View()
 ```
 
+### I**mpute fare and embarkment**
+
+-   impute the two missing values as southampton
+
+-   remove zeroes from fare and impute with mean from Pclass
+
 ```{r}
 data_imput |> 
   filter(!is.na(Embarked)) |> 
@@ -629,13 +644,126 @@ data_imput |>
   facet_wrap(~ Embarked)
 ```
 
+```{r}
+# Impute the two missing values as southampton
+
+data_imput <- data_imput |>
+  mutate(Embarked = case_when(
+    is.na(Embarked) ~ "S",
+    !is.na(Embarked) ~ Embarked
+  ))
+```
+
+```{r}
+# Fares imputed
+# Remove zeroes from fare and impute with mean from Pclass
+
+data_imput <- data_imput |> 
+  mean_impute_avg_fare()
+```
+
+### Impute missing Cabin values with "None"
+
+```{r}
+data_imput <- data_imput |> 
+  mutate(
+    Cabin = if_else(is.na(Cabin), "None", Cabin),
+    Cabin_sector = if_else(is.na(Cabin_sector), "None", Cabin_sector),
+    CabinNumber = if_else(is.na(CabinNumber), "None", as.character(CabinNumber))
+  )
+
+names(data_imput)
+
+analysis_data <- data_imput |> 
+  select(-c("PassengerId", "CabinNumber", "Name", "Ticket", "title", "mean_age_1", "mean_age_2", "avg_fare"))
+```
+
+## Model building
+
+```{r}
+glm_net_mod <- logistic_reg() |>  
+  set_engine("glmnet")
+
+glm_net_fit <- 
+  glm_net_mod |>  
+  fit(Survived ~ ., data = analysis_data)
+
+
+```
+
+## Old Code
+
 ### Adding family indicators
 
 -   We want an indicator for a mom travelling with children
 
 -   And an indicator for children travelling with a mom
 
+Note:
+
+Not sure whether we should add these variables this way. Added value comes from family unit (Mother + child units) as these often Survived or Died together. Just adding the columns 'Mother(OnDuty)' and/or 'Children(InCare)' doesn't necessarily add value and can quite easily be derived by the existing columns age and/or gender. So either go for the variable family unit and create many different categories or **leave them out.**
+
 ```{r}
-data_imput |> 
-  
+# # Mom with children
+# data_imput |> 
+#     dplyr::select(
+#         Survived,
+#         title,
+#         Name, 
+#         Sex, 
+#         Age, 
+#         SibSp, 
+#         Parch,
+#         Ticket, 
+#         Cabin
+#     ) |> 
+#     filter(Parch >= 1) |> 
+#     group_by(Ticket) |> 
+#     filter(n() >= 2) |>  # Ensure at least 2 instances per Ticket group
+#     ungroup() |> 
+#     filter(Sex == "female") |>  # Keep only females
+#     group_by(Ticket) |> 
+#     slice_max(Age, n = 1, with_ties = FALSE) |>  # Oldest female in each Ticket group
+#     ungroup() |> 
+#     filter(title == " Mrs.") |>  # Filter by title
+#     View()
+# 
+# # New column created
+# data_imput <- data_imput |> 
+#     dplyr::mutate(
+#         MotherOnDuty = if_else(
+#             Parch >= 1 & 
+#             Sex == "female" & 
+#             title == " Mrs." & 
+#             Ticket %in% (
+#                 data_imput |>
+#                     filter(Parch >= 1) |> 
+#                     group_by(Ticket) |> 
+#                     filter(n() >= 2) |> 
+#                     pull(Ticket)
+#             ),
+#             1, 
+#             0
+#         )
+#     )
 ```
+
+```{r}
+# # Children
+# data_imput |> 
+#     dplyr::select(
+#         Survived,
+#         title,
+#         Name, 
+#         Sex, 
+#         Age, 
+#         SibSp, 
+#         Parch,
+#         Ticket, 
+#         Cabin
+#     ) |> 
+#     filter(Parch >= 1, title == " Miss." | title == " Master.") |> 
+#   view()
+```
+
+### 
