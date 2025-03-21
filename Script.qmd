@@ -681,10 +681,108 @@ analysis_data <- data_imput |>
 ## Model building
 
 ```{r}
-glm_net_mod <- 
-  logistic_reg() |>  
-  set_engine("glmnet")
+analysis_data2 = 
+  analysis_data |> 
+  dplyr::select(
+    -ticket_nr,
+    -Cabin,
+    -ticket_pre
+  ) |> 
+  dplyr::mutate(
+    across(
+      c(Survived, Pclass, Sex, SibSp, Parch, Embarked, Cabin_sector, title_group),
+      as.factor),
+    across(
+      c(Age, Fare),
+      round
+    )
+  )
+```
 
+```{r}
+analysis_data2
+```
+
+```{r}
+base_rec = 
+  recipe(
+    Survived ~ ., data = analysis_data2) |>
+  step_normalize(all_numeric_predictors()) |> 
+  step_dummy(all_nominal_predictors())
+
+preproc = 
+  list(
+    base = base_rec
+  )
+```
+
+
+Build on on this: 
+https://www.tmwr.org/compare
+
+```{r}
+workflow_set(preproc,
+             list(
+               glm = logistic_reg(engine = "glm")), 
+               cross = F
+             )
+```
+```{r}
+glm <- 
+  logistic_reg() |> 
+  set_engine("glm")
+```
+
+
+```{r}
+glm_net_mod <- 
+  logistic_reg(penalty = tune(),
+               mixture = tune()) |>  
+  set_engine("glmnet")
+```
+
+```{r}
+# Set up 10-fold cross-validation on the training data (stratified by outcome class)
+set.seed(123)
+folds <- vfold_cv(analysis_data2, 
+                  v = 10, 
+                  strata = Survived)
+```
+
+```{r}
+# Create a grid of penalty values (log10 scale) and mixture values to try
+penalty_grid <- grid_regular(penalty(range = c(-4, -1)), levels = 20)  # e.g. 20 lambda values from 10^-4 to 10^-1
+
+mix_vals <- tibble(mixture = c(0, 0.25, 0.5, 0.75, 1.0))
+
+grid_vals <- expand_grid(penalty_grid, mix_vals)
+```
+
+```{r}
+# Set up a workflow with a recipe (if needed for preprocessing)
+wf <- 
+  workflow() |> 
+  add_model(glm_net_mod) |> 
+  add_recipe(
+    )
+```
+
+```{r}
+# Tune hyperparameters using the cross-validation resamples
+tune_results <- 
+  tune_grid(
+    wf,
+    resamples = folds,
+    grid = grid_vals,
+    metrics = metric_set(roc_auc, accuracy)
+)
+
+# Examine the top results
+show_best(tune_results, metric = "roc_auc")
+```
+
+
+```{r}
 glm_net_fit <- 
   glm_net_mod |>  
   fit(Survived ~ ., data = analysis_data)
