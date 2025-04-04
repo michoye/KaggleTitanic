@@ -703,36 +703,58 @@ analysis_data2 =
 analysis_data2
 ```
 
-```{r}
-base_rec = 
-  recipe(
-    Survived ~ ., data = analysis_data2) |>
-  step_normalize(all_numeric_predictors()) |> 
-  step_dummy(all_nominal_predictors())
-
-preproc = 
-  list(
-    base = base_rec
-  )
-```
-
 
 Build on on this: 
 https://www.tmwr.org/compare
 
 ```{r}
-workflow_set(preproc,
-             list(
-               glm = logistic_reg(engine = "glm")), 
-               cross = F
-             )
+base_rec = 
+  recipe(
+    Survived ~ ., data = analysis_data2) |> 
+  step_dummy(all_nominal_predictors()) 
+
+interaction_rec = 
+  base_rec #|> 
+  #step_interact(~ )
+
+spline_rec = 
+  interaction_rec |> 
+  step_spline_natural(
+    Age,
+    deg_free = tune("age_df") # tune number of degrees of freedom for age
+    ) |> 
+  step_spline_natural(
+    Fare,
+    deg_free = tune("fare_df") # tune number of degrees of freedom for fare
+    ) |> 
+  step_normalize(all_numeric_predictors()) 
 ```
+
+
+```{r}
+preproc = 
+  list(
+    basic = base_rec,
+    interact = interaction_rec,
+    splines = spline_rec
+  )
+```
+
+## Models
+
 ```{r}
 glm <- 
   logistic_reg() |> 
   set_engine("glm")
 ```
 
+```{r}
+glm_models = 
+  workflow_set(preproc,
+             list(
+               glm = glm),
+             cross = F)
+```
 
 ```{r}
 glm_net_mod <- 
@@ -742,6 +764,16 @@ glm_net_mod <-
 ```
 
 ```{r}
+glm_net_models = 
+  workflow_set(preproc,
+             list(
+               glm = glm_net_mod),
+             cross = F)
+```
+
+## Resampling
+
+```{r}
 # Set up 10-fold cross-validation on the training data (stratified by outcome class)
 set.seed(123)
 folds <- vfold_cv(analysis_data2, 
@@ -749,22 +781,57 @@ folds <- vfold_cv(analysis_data2,
                   strata = Survived)
 ```
 
+## Tuning grids
+
 ```{r}
 # Create a grid of penalty values (log10 scale) and mixture values to try
-penalty_grid <- grid_regular(penalty(range = c(-4, -1)), levels = 20)  # e.g. 20 lambda values from 10^-4 to 10^-1
-
+penalty_vals <- 
+  grid_regular(
+    penalty(range = 
+              c(-4, -1)), 
+    levels = 20)  # e.g. 20 lambda values from 10^-4 to 10^-1
 mix_vals <- tibble(mixture = c(0, 0.25, 0.5, 0.75, 1.0))
+age_vals <- tibble(age_df = c(3:4))
+fare_vals <- tibble(fare_df = c(3:4))
 
-grid_vals <- expand_grid(penalty_grid, mix_vals)
+basic_grid <- expand_grid(penalty_vals, mix_vals)
+spline_grid <- expand_grid(penalty_vals, mix_vals, age_vals, fare_vals)
+
+grid_list <- list(
+  basic_glm = basic_grid,
+  splines_glm = spline_grid
+)
 ```
 
 ```{r}
-# Set up a workflow with a recipe (if needed for preprocessing)
-wf <- 
-  workflow() |> 
-  add_model(glm_net_mod) |> 
-  add_recipe(
-    )
+keep_pred <- control_resamples(save_pred = TRUE, save_workflow = TRUE)
+```
+
+```{r}
+#tune_results_list <- 
+  glm_net_models %>%
+  workflow_map(
+    "tune_grid",
+    resamples = folds,
+    grid = grid_list,
+    metrics = metric_set(roc_auc, accuracy),
+    control = keep_pred,
+    seed = 1234,
+    verbose = TRUE
+  )
+```
+```{r}
+tune_results_list |> 
+  extract_workflow_set_result("basic_glm")
+```
+
+
+
+```{r}
+# Examine the results
+tune_results_list %>%
+  extract_workflow_set_result("splines_glm") %>% # or other workflow identifier
+  show_best(metric = "roc_auc")
 ```
 
 ```{r}
@@ -779,11 +846,4 @@ tune_results <-
 
 # Examine the top results
 show_best(tune_results, metric = "roc_auc")
-```
-
-
-```{r}
-glm_net_fit <- 
-  glm_net_mod |>  
-  fit(Survived ~ ., data = analysis_data)
 ```
