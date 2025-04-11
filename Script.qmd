@@ -690,7 +690,7 @@ analysis_data2 =
   ) |> 
   dplyr::mutate(
     across(
-      c(Survived, Pclass, Sex, SibSp, Parch, Embarked, Cabin_sector, title_group),
+      c(Survived, Pclass, Sex, SibSp, Embarked, Cabin_sector, title_group),
       as.factor),
     across(
       c(Age, Fare),
@@ -700,7 +700,7 @@ analysis_data2 =
 ```
 
 ```{r}
-analysis_data2
+analysis_data2$Cabin_sector |> table()
 ```
 
 
@@ -712,7 +712,10 @@ base_rec =
   recipe(
     Survived ~ ., data = analysis_data2) |> 
   step_dummy(all_nominal_predictors()) |> 
-  step_zv()
+  step_nzv(all_nominal_predictors(),
+           freq_cut = 95/5
+           ) |> 
+  step_normalize(all_numeric_predictors()) 
 
 interaction_rec = 
   base_rec |> 
@@ -727,7 +730,8 @@ spline_rec =
   step_spline_natural(
     Fare,
     deg_free = tune("fare_df") # tune number of degrees of freedom for fare
-    ) |> 
+    ) |>
+  step_zv() |> 
   step_normalize(all_numeric_predictors()) 
 ```
 
@@ -800,6 +804,7 @@ spline_grid <- expand_grid(penalty_vals, mix_vals, age_vals, fare_vals)
 
 grid_list <- list(
   basic_glm = basic_grid,
+  interact_glm = basic_grid,
   splines_glm = spline_grid
 )
 ```
@@ -814,12 +819,12 @@ keep_pred <- control_resamples(save_pred = TRUE, save_workflow = TRUE)
 ```
 
 ```{r}
-#tune_results_list <- 
+tune_results_list <- 
   glm_net_models %>%
   workflow_map(
     "tune_grid",
     resamples = folds,
-    grid = grid_list[[2]],
+    grid = grid_list[[3]],
     metrics = metric_set(roc_auc, accuracy),
     control = keep_pred,
     seed = 1234,
@@ -828,7 +833,7 @@ keep_pred <- control_resamples(save_pred = TRUE, save_workflow = TRUE)
 ```
 ```{r}
 tune_results_list |> 
-  extract_workflow_set_result("basic_glm")
+  extract_workflow_set_result("splines_glm")
 ```
 
 
