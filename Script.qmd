@@ -711,11 +711,12 @@ https://www.tmwr.org/compare
 base_rec = 
   recipe(
     Survived ~ ., data = analysis_data2) |> 
-  step_dummy(all_nominal_predictors()) 
+  step_dummy(all_nominal_predictors()) |> 
+  step_zv()
 
 interaction_rec = 
-  base_rec #|> 
-  #step_interact(~ )
+  base_rec |> 
+  step_interact(terms = ~ Age:starts_with("Pclass"))
 
 spline_rec = 
   interaction_rec |> 
@@ -804,6 +805,11 @@ grid_list <- list(
 ```
 
 ```{r}
+grid_list
+```
+
+
+```{r}
 keep_pred <- control_resamples(save_pred = TRUE, save_workflow = TRUE)
 ```
 
@@ -813,7 +819,7 @@ keep_pred <- control_resamples(save_pred = TRUE, save_workflow = TRUE)
   workflow_map(
     "tune_grid",
     resamples = folds,
-    grid = grid_list,
+    grid = grid_list[[2]],
     metrics = metric_set(roc_auc, accuracy),
     control = keep_pred,
     seed = 1234,
