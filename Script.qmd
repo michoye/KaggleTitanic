@@ -17,17 +17,19 @@ author:
 
 ## TODO
 
--   Think about imputation / try first imputation
-    -   DONE imputation based on Title implemented, **but for Miss do based on Parch** -\> Johannes
-    -   DONE Double check functions --\> **Johannes**
-    -   DONE impute fare and embarkment –\> Michael / Thomas
-    -   ABORT add columns for children who travelled with mom / mom traveling with children -\> see below
-        -   After googling :
-            -   If woman died --\> families died
-            -   So if women travelling with kids, women dies --\> kids die
--   Google Search what cabin prefixes and embarquement actually mean --\> Thomas
--   Clean up and standardise code, except for imputation -\> Thomas
--   Choice of pred model
+-   Go to code section 'Continue here': Code works but check if we can use workflow_map: <https://www.tmwr.org/workflow-sets>
+
+-   (Maybe think about putting some preprocessing steps we already did into the tidymodel recipe to understand how this would be done) 
+
+-   Compare performance across variations (add interactions, splines) - work out workflow & sole current errors with 'tune_grid'.
+
+-   Compare log reg with glmnet vs. log reg with glm.
+
+-   Add other models that are of interest - e.g. xgboost, lightgbm, and/or nnet
+
+-   Once we're happy with the model choices & the preprocessing of the variables, we can also evaluate the performance
+
+-   Plot results
 
 ## Log
 
@@ -45,6 +47,26 @@ author:
 
 -   Imputed Fare (if 0) and Embarked (if missing) values
 -   Looked into Family unit. Decided to not pursue: too many DOF
+
+### 2025-02 - 2025-04
+
+-   Think about imputation / try first imputation
+    -   DONE imputation based on Title implemented, **but for Miss do based on Parch** -\> Johannes
+    -   DONE Double check functions --\> **Johannes**
+    -   DONE impute fare and embarkment –\> Michael / Thomas
+    -   ABORT add columns for children who travelled with mom / mom traveling with children -\> see below
+        -   After googling :
+            -   If woman died --\> families died
+            -   So if women travelling with kids, women dies --\> kids die
+-   Google Search what cabin prefixes and embarquement actually mean --\> Thomas
+-   Clean up and standardise code, except for imputation -\> Thomas
+-   Choice of pred model
+
+### 2025-05-16
+
+-   Added comments to code
+-   Fixed Tuning. Added loop for it.
+-   Now, we want to make it work with workflow_map, i.e. this workflow: <https://www.tmwr.org/workflow-sets>
 
 ## Loading packages
 
@@ -91,6 +113,12 @@ if(!require("patchwork")){
 if(!require("tidymodels")){
   install.packages("tidymodels")
   library("tidymodels")                                                          
+  # modelling
+}
+
+if(!require("splines2")){
+  install.packages("splines2")
+  library("splines2")                                                          
   # modelling
 }
 ```
@@ -703,40 +731,50 @@ analysis_data2 =
 analysis_data2$Cabin_sector |> table()
 ```
 
-
-Build on on this: 
-https://www.tmwr.org/compare
+Build on on this: https://www.tmwr.org/compare
 
 ```{r}
 base_rec = 
   recipe(
     Survived ~ ., data = analysis_data2) |> 
+  # Create dummy variables for categorical variables
   step_dummy(all_nominal_predictors()) |> 
+  # Rare and very dominant categories are cut - Near-zero variance filter
   step_nzv(all_nominal_predictors(),
            freq_cut = 95/5
-           ) |> 
-  step_normalize(all_numeric_predictors()) 
+           )  |>
+  # Remove variables that include only one variable
+  step_zv(all_predictors())|> 
+  #Normalize the numeric variables
+  step_normalize(all_numeric_predictors())
 
 interaction_rec = 
-  base_rec |> 
-  step_interact(terms = ~ Age:starts_with("Pclass"))
+  base_rec |>
+  # Added interaction effect on Age variable
+  step_interact(terms = ~ Age:starts_with("Pclass"))|>
+  # Remove variables that include only one variable
+  step_zv(all_predictors()) |> 
+  step_normalize(all_numeric_predictors()) 
 
 spline_rec = 
   interaction_rec |> 
+  # Added splines for age (with tuning)
   step_spline_natural(
     Age,
     deg_free = tune("age_df") # tune number of degrees of freedom for age
     ) |> 
+  # Added splines for fare (with tuning)
   step_spline_natural(
     Fare,
     deg_free = tune("fare_df") # tune number of degrees of freedom for fare
     ) |>
-  step_zv() |> 
+  # Remove variables that include only one variable
+  step_zv(all_predictors()) |> 
   step_normalize(all_numeric_predictors()) 
 ```
 
-
 ```{r}
+# Create a preprocessing pipeline
 preproc = 
   list(
     basic = base_rec,
@@ -748,12 +786,14 @@ preproc =
 ## Models
 
 ```{r}
+# We define the model
 glm <- 
   logistic_reg() |> 
   set_engine("glm")
 ```
 
 ```{r}
+# Create the workflow with the glm model
 glm_models = 
   workflow_set(preproc,
              list(
@@ -762,6 +802,7 @@ glm_models =
 ```
 
 ```{r}
+# Define log regression model again but with different engine
 glm_net_mod <- 
   logistic_reg(penalty = tune(),
                mixture = tune()) |>  
@@ -769,6 +810,7 @@ glm_net_mod <-
 ```
 
 ```{r}
+# Create the workflow with the glm net model
 glm_net_models = 
   workflow_set(preproc,
              list(
@@ -796,12 +838,14 @@ penalty_vals <-
               c(-4, -1)), 
     levels = 20)  # e.g. 20 lambda values from 10^-4 to 10^-1
 mix_vals <- tibble(mixture = c(0, 0.25, 0.5, 0.75, 1.0))
+
+# Also tune the degrees of freedom
 age_vals <- tibble(age_df = c(3:4))
 fare_vals <- tibble(fare_df = c(3:4))
 
+# Grid creation
 basic_grid <- expand_grid(penalty_vals, mix_vals)
 spline_grid <- expand_grid(penalty_vals, mix_vals, age_vals, fare_vals)
-
 grid_list <- list(
   basic_glm = basic_grid,
   interact_glm = basic_grid,
@@ -813,30 +857,57 @@ grid_list <- list(
 grid_list
 ```
 
-
 ```{r}
+# setting up resampling control to save predictions and workflows during the tuning process
 keep_pred <- control_resamples(save_pred = TRUE, save_workflow = TRUE)
 ```
 
+**Continue here (16.05.2025):**
+
+Code works but check if we can use workflow_map: <https://www.tmwr.org/workflow-sets>
+
 ```{r}
-tune_results_list <- 
-  glm_net_models %>%
-  workflow_map(
-    "tune_grid",
-    resamples = folds,
-    grid = grid_list[[3]],
-    metrics = metric_set(roc_auc, accuracy),
-    control = keep_pred,
-    seed = 1234,
-    verbose = TRUE
-  )
+# tune_results_list <- 
+#   glm_net_models %>%
+#   workflow_map(
+#     "tune_grid",
+#     resamples = folds,
+#     # Use the grid list for each model
+#     grid = grid_list,
+#     metrics = metric_set(roc_auc, accuracy),
+#     control = keep_pred,
+#     seed = 1234,
+#     verbose = TRUE
+#   )
+
+
+
+# Tune all models
+# Set seed for reproducibility
+set.seed(1234)
+
+# Create empty list to store results
+tune_results_list <- list()
+
+# Loop through each model type
+for (model_name in names(grid_list)) {
+  tune_results_list[[model_name]] <- 
+    glm_net_models %>%
+    extract_workflow(model_name) %>%
+      tune_grid(
+      resamples = folds,
+      grid = grid_list[[model_name]],
+      metrics = metric_set(roc_auc, accuracy),
+      control = keep_pred
+      )
+}
+
 ```
+
 ```{r}
 tune_results_list |> 
   extract_workflow_set_result("splines_glm")
 ```
-
-
 
 ```{r}
 # Examine the results
