@@ -17,17 +17,13 @@ author:
 
 ## TODO
 
--   Go to code section 'Continue here': Code works but check if we can use workflow_map: <https://www.tmwr.org/workflow-sets>
+-   xgboost: find error related the id of the workflow
 
--   (Maybe think about putting some preprocessing steps we already did into the tidymodel recipe to understand how this would be done) 
-
--   Compare performance across variations (add interactions, splines) - work out workflow & sole current errors with 'tune_grid'.
-
--   Compare log reg with glmnet vs. log reg with glm.
-
--   Add other models that are of interest - e.g. xgboost, lightgbm, and/or nnet
+-   Add other models that are of interest - lightgbm / catboost, and/or nnet
 
 -   Once we're happy with the model choices & the preprocessing of the variables, we can also evaluate the performance
+
+-   (Maybe think about putting some preprocessing steps we already did into the tidymodel recipe to understand how this would be done) 
 
 -   Plot results
 
@@ -67,6 +63,12 @@ author:
 -   Added comments to code
 -   Fixed Tuning. Added loop for it.
 -   Now, we want to make it work with workflow_map, i.e. this workflow: <https://www.tmwr.org/workflow-sets>
+
+### 2025-05-22
+
+-   Go to code section 'Continue here': Code works but check if we can use workflow_map: <https://www.tmwr.org/workflow-sets>
+-   Compare performance across variations (add interactions, splines) - work out workflow & sole current errors with 'tune_grid'.
+-   Compare log reg with glmnet vs. log reg with glm.
 
 ## Loading packages
 
@@ -779,7 +781,8 @@ preproc =
   list(
     basic = base_rec,
     interact = interaction_rec,
-    splines = spline_rec
+    splines = spline_rec,
+    xgboost = base_rec
   )
 ```
 
@@ -787,18 +790,9 @@ preproc =
 
 ```{r}
 # We define the model
-glm <- 
+glm_mod <- 
   logistic_reg() |> 
   set_engine("glm")
-```
-
-```{r}
-# Create the workflow with the glm model
-glm_models = 
-  workflow_set(preproc,
-             list(
-               glm = glm),
-             cross = F)
 ```
 
 ```{r}
@@ -810,13 +804,49 @@ glm_net_mod <-
 ```
 
 ```{r}
-# Create the workflow with the glm net model
-glm_net_models = 
-  workflow_set(preproc,
-             list(
-               glm = glm_net_mod),
-             cross = F)
+xgboost_mod <- 
+  parsnip::boost_tree(
+    trees = 1000,
+    min_n = tune(),
+    tree_depth = tune(),
+    learn_rate = tune(),
+    loss_reduction = tune()
+  ) %>%
+    set_engine("xgboost", objective = "binary:logistic")|> 
+  set_mode("classification")
 ```
+
+```{r}
+# Create the workflow with the glm net model
+models_set = 
+  workflow_set(
+    preproc = 
+      list(
+        basic = base_rec,
+        interact = interaction_rec,
+        spline = spline_rec
+      ),
+    models=
+      list(
+        glm = glm_mod,
+        glm_net = glm_net_mod,
+        xgboost = xgboost_mod),
+    cross = T)
+```
+
+```{r}
+models_set = 
+  models_set |> 
+  dplyr::filter(
+    wflow_id != "interact_xgboost",
+    wflow_id != "spline_xgboost"
+  )
+```
+
+```{r}
+models_set
+```
+
 
 ## Resampling
 
@@ -844,17 +874,44 @@ age_vals <- tibble(age_df = c(3:4))
 fare_vals <- tibble(fare_df = c(3:4))
 
 # Grid creation
-basic_grid <- expand_grid(penalty_vals, mix_vals)
-spline_grid <- expand_grid(penalty_vals, mix_vals, age_vals, fare_vals)
-grid_list <- list(
-  basic_glm = basic_grid,
-  interact_glm = basic_grid,
-  splines_glm = spline_grid
-)
+basic_grid <- NULL
+basic_net_grid <- expand_grid(penalty_vals, mix_vals)
+spline_grid <- expand_grid(age_vals, fare_vals)
+spline_net_grid <- expand_grid(penalty_vals, mix_vals, age_vals, fare_vals)
 ```
 
 ```{r}
-grid_list
+xgboost_grid = 
+  dials::parameters(
+    min_n(),
+    tree_depth(),
+    learn_rate(),
+    loss_reduction()
+  ) |> 
+  dials::grid_max_entropy(
+    size = 60
+  )
+```
+
+```{r}
+xgboost_mod
+```
+```{r}
+xgboost_grid
+```
+
+
+
+```{r}
+grid_list <- list(
+  base_glm = basic_grid,
+  base_glm_net = basic_net_grid,
+  interact_glm = basic_grid,
+  interact_glm_net = basic_net_grid,
+  splines_glm = spline_grid,
+  splines_glm_net = spline_net_grid,
+  base_xgboost = xgboost_grid
+)
 ```
 
 ```{r}
@@ -862,9 +919,105 @@ grid_list
 keep_pred <- control_resamples(save_pred = TRUE, save_workflow = TRUE)
 ```
 
-**Continue here (16.05.2025):**
+```{r}
+models_set |> 
+  dplyr::filter(
+    wflow_id == "basic_xgboost"
+  )
+```
+
+## Workflow map to store hypertuning parameters
+
+```{r}
+tune_results_list <- 
+  glm_net_models_set %>%
+  option_add(grid = basic_grid, id = "basic_glm") %>%
+  option_add(grid = basic_net_grid, id = "basic_glm_net") %>%
+  option_add(grid = xgboost_grid, id = "basic_xgboost") |> 
+  option_add(grid = basic_grid, id = "interact_glm") |> 
+  option_add(grid = basic_net_grid, id = "interact_glm_net") %>%
+  option_add(grid = spline_grid, id = "splines_glm") |> 
+  option_add(grid = spline_net_grid, id = "splines_glm_net") %>%
+  workflow_map(
+    "tune_grid",
+    resamples = folds,
+    metrics = metric_set(roc_auc, accuracy),
+    control = keep_pred,
+    seed = 1234,
+    verbose = TRUE
+  )
+```
+
+```{r}
+tune_results_list |> 
+  extract_workflow_set_result(id = "basic_glm") |> 
+    show_best(metric = "roc_auc")
+```
+
 
 Code works but check if we can use workflow_map: <https://www.tmwr.org/workflow-sets>
+
+```{r}
+tune_results_list |> rank_results(select_best = T) |>
+  dplyr::filter(
+    .metric == "roc_auc"
+  ) |> 
+  dplyr::arrange(
+    desc(mean)
+  ) |> 
+  ggplot(
+    aes(
+      y = mean,
+      ymax = mean+std_err,
+      ymin = mean-std_err,
+      x = reorder(wflow_id, mean)
+    )
+  ) + 
+  geom_point() +
+  geom_errorbar() +
+  coord_cartesian(ylim = c(0.825, 0.9))
+```
+
+
+```{r}
+tune_results_list |> 
+  extract_workflow_set_result("basic_glm") |> 
+  show_best(metric = "roc_auc")
+```
+
+
+```{r}
+# Examine the results
+tune_results_list %>%
+  extract_workflow_set_result("basic_glm") %>% # or other workflow identifier
+  show_best(metric = "roc_auc")
+```
+
+```{r}
+tune_results_list |> 
+  
+```
+
+
+```{r}
+# Extract all workflow results at once
+all_results <- 
+  tune_results_list %>%
+  map(~ extract_workflow_set_result(.x, names(.x$result)[[1]]))
+ 
+```
+
+
+
+```{r}
+all_results <- 
+  tune_results_list %>%
+  map_dfr(~ {
+    .x %>%
+      extract_workflow_set_result(.x$wflow_id) %>%
+      mutate(workflow = .x$wflow_id)
+  }, .id = "workflow_set")
+```
 
 ```{r}
 # tune_results_list <- 
@@ -879,8 +1032,6 @@ Code works but check if we can use workflow_map: <https://www.tmwr.org/workflow-
 #     seed = 1234,
 #     verbose = TRUE
 #   )
-
-
 
 # Tune all models
 # Set seed for reproducibility
@@ -901,20 +1052,18 @@ for (model_name in names(grid_list)) {
       control = keep_pred
       )
 }
-
 ```
+
+```{r}
+tune_results_list[[3]]
+```
+
 
 ```{r}
 tune_results_list |> 
   extract_workflow_set_result("splines_glm")
 ```
 
-```{r}
-# Examine the results
-tune_results_list %>%
-  extract_workflow_set_result("splines_glm") %>% # or other workflow identifier
-  show_best(metric = "roc_auc")
-```
 
 ```{r}
 # Tune hyperparameters using the cross-validation resamples
