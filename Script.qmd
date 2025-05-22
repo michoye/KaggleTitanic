@@ -17,7 +17,7 @@ author:
 
 ## TODO
 
--   xgboost: find error related the id of the workflow
+-   xgboost: reduce grid
 
 -   Add other models that are of interest - lightgbm / catboost, and/or nnet
 
@@ -881,6 +881,12 @@ spline_net_grid <- expand_grid(penalty_vals, mix_vals, age_vals, fare_vals)
 ```
 
 ```{r}
+spline_net_grid
+xgboost_grid
+```
+
+
+```{r}
 xgboost_grid = 
   dials::parameters(
     min_n(),
@@ -916,21 +922,14 @@ grid_list <- list(
 
 ```{r}
 # setting up resampling control to save predictions and workflows during the tuning process
-keep_pred <- control_resamples(save_pred = TRUE, save_workflow = TRUE)
-```
-
-```{r}
-models_set |> 
-  dplyr::filter(
-    wflow_id == "basic_xgboost"
-  )
+keep_pred <- control_resamples(save_pred = TRUE, save_workflow = TRUE, verbose = F)
 ```
 
 ## Workflow map to store hypertuning parameters
 
 ```{r}
 tune_results_list <- 
-  glm_net_models_set %>%
+  models_set %>%
   option_add(grid = basic_grid, id = "basic_glm") %>%
   option_add(grid = basic_net_grid, id = "basic_glm_net") %>%
   option_add(grid = xgboost_grid, id = "basic_xgboost") |> 
