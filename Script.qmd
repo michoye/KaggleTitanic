@@ -950,7 +950,7 @@ tune_results_list <-
 
 ```{r}
 tune_results_list |> 
-  extract_workflow_set_result(id = "basic_glm") |> 
+  extract_workflow_set_result(id = "basic_xgboost") |> 
     show_best(metric = "roc_auc")
 ```
 
