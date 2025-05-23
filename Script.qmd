@@ -17,6 +17,10 @@ author:
 
 ## TODO
 
+-   Add resampling method (bootstrap)
+
+-   Check if we can add variable selection procedures in the tuning grid (?)
+
 -   xgboost: reduce grid
 
 -   Add other models that are of interest - lightgbm / catboost, and/or nnet
@@ -847,7 +851,6 @@ models_set =
 models_set
 ```
 
-
 ## Resampling
 
 ```{r}
@@ -885,7 +888,6 @@ spline_net_grid
 xgboost_grid
 ```
 
-
 ```{r}
 xgboost_grid = 
   dials::parameters(
@@ -902,11 +904,10 @@ xgboost_grid =
 ```{r}
 xgboost_mod
 ```
+
 ```{r}
 xgboost_grid
 ```
-
-
 
 ```{r}
 grid_list <- list(
@@ -953,7 +954,6 @@ tune_results_list |>
     show_best(metric = "roc_auc")
 ```
 
-
 Code works but check if we can use workflow_map: <https://www.tmwr.org/workflow-sets>
 
 ```{r}
@@ -977,13 +977,11 @@ tune_results_list |> rank_results(select_best = T) |>
   coord_cartesian(ylim = c(0.825, 0.9))
 ```
 
-
 ```{r}
 tune_results_list |> 
   extract_workflow_set_result("basic_glm") |> 
   show_best(metric = "roc_auc")
 ```
-
 
 ```{r}
 # Examine the results
@@ -997,7 +995,6 @@ tune_results_list |>
   
 ```
 
-
 ```{r}
 # Extract all workflow results at once
 all_results <- 
@@ -1005,8 +1002,6 @@ all_results <-
   map(~ extract_workflow_set_result(.x, names(.x$result)[[1]]))
  
 ```
-
-
 
 ```{r}
 all_results <- 
@@ -1057,12 +1052,10 @@ for (model_name in names(grid_list)) {
 tune_results_list[[3]]
 ```
 
-
 ```{r}
 tune_results_list |> 
   extract_workflow_set_result("splines_glm")
 ```
-
 
 ```{r}
 # Tune hyperparameters using the cross-validation resamples
