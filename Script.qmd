@@ -17,7 +17,7 @@ author:
 
 ## TODO
 
--   Add resampling method (bootstrap)
+-   Hyperparameter tuning via Bayesian approach
 
 -   Check if we can add variable selection procedures in the tuning grid (?)
 
@@ -807,6 +807,8 @@ glm_net_mod <-
   set_engine("glmnet")
 ```
 
+### XGBoost Mod Tune
+
 ```{r}
 xgboost_mod <- 
   parsnip::boost_tree(
@@ -842,7 +844,7 @@ models_set =
 models_set = 
   models_set |> 
   dplyr::filter(
-    wflow_id != "basic_xgboost", # to be changed later on
+    #wflow_id != "basic_xgboost", # to be changed later on
     wflow_id != "interact_xgboost",
     wflow_id != "spline_xgboost"
   )
@@ -854,6 +856,8 @@ models_set
 
 
 ## Tuning grids
+
+### Classic grids
 
 ```{r}
 # Create a grid of penalty values (log10 scale) and mixture values to try
@@ -876,17 +880,53 @@ spline_net_grid <- expand_grid(penalty_vals, mix_vals, age_vals, fare_vals)
 ```
 
 ```{r}
-xgboost_grid = 
-  dials::parameters(
-    min_n(),
-    tree_depth(),
-    learn_rate(),
-    loss_reduction()
-  ) |> 
-  dials::grid_max_entropy(
-    size = 60
+min_n = seq(0, 40, by = 20)
+min_n_vals
+tree_depth = seq(2, 6, by = 2)
+tree_depth
+learn_rate = 
+  grid_regular(
+    learn_rate(range = c(-2, -0.6),
+               trans = transform_log10()), 
+    levels = 3)
+
+loss_reduction = 
+  grid_regular(
+    loss_reduction(
+      range = c(-10, 1.5),
+      trans = transform_log10()),
+    levels = 2
   )
+
+xgboost_grid = 
+  expand_grid(
+    min_n,
+    tree_depth,
+    learn_rate,
+    loss_reduction
+    )
 ```
+
+### Bayesian tuning
+
+```{r}
+# xgboost_grid = 
+#   dials::parameters(
+#     min_n(),
+#     tree_depth(),
+#     learn_rate(),
+#     loss_reduction()
+#   ) |> 
+#   dials::grid_max_entropy(
+#     size = 30
+#   )
+```
+
+```{r}
+xgboost_grid
+```
+
+
 ```{r}
 grid_list <- list(
   base_glm = basic_grid,
@@ -899,6 +939,11 @@ grid_list <- list(
 )
 ```
 
+```{r}
+grid_list
+```
+
+
 ## Set options to specify grid per wflow_set_id
 
 ```{r}
@@ -906,7 +951,7 @@ model_set_options <-
   models_set %>%
   option_add(grid = basic_grid, id = "basic_glm") %>%
   option_add(grid = basic_net_grid, id = "basic_glm_net") %>%
-  #option_add(grid = xgboost_grid, id = "basic_xgboost") |> 
+  option_add(grid = xgboost_grid, id = "basic_xgboost") |> 
   option_add(grid = basic_grid, id = "interact_glm") |> 
   option_add(grid = basic_net_grid, id = "interact_glm_net") %>%
   option_add(grid = spline_grid, id = "spline_glm") |> 
@@ -929,7 +974,7 @@ folds <- vfold_cv(analysis_data2,
 ```
 
 ```{r}
-folds_eval = 
+folds_eval_tune_grid = 
   model_set_options |> 
   workflow_map(
     "tune_grid",
@@ -941,76 +986,65 @@ folds_eval =
   )
 ```
 
+### Tuning Mod Bayes
+
 ```{r}
-# prepare a boostrap validation
-set.seed(123)
-boots = 
-  bootstraps(
-    analysis_data2,
-    times = 200,
-    apparent = TRUE
-)
+# setting up resampling control to save predictions and workflows during the tuning process
+control_bayes <- control_bayes(save_pred = TRUE, save_workflow = TRUE, verbose = F)
 ```
 
 ```{r}
-boots_eval = 
+set.seed(1234)
+
+folds_eval_tune_bayes = 
   model_set_options |> 
   workflow_map(
-    "tune_grid",
+    "tune_bayes",
+    iter = 5,
     resamples = folds,
     metrics = metric_set(roc_auc, accuracy),
-    control = keep_pred,
+    control = control_bayes,
     seed = 1234,
     verbose = TRUE
   )
 ```
 
 ```{r}
-tune_results_list |> 
-  extract_workflow_set_result(id = "basic_xgboost") |> 
-    show_best(metric = "roc_auc")
+folds_eval
 ```
 
-Code works but check if we can use workflow_map: <https://www.tmwr.org/workflow-sets>
-
 ```{r}
-tune_results_list |> rank_results(select_best = T) |>
+folds_eval |> 
+  extract_workflow_set_result("basic_glm_net") |> 
+  show_best(metric = "roc_auc")|>
   dplyr::filter(
     .metric == "roc_auc"
   ) |> 
   dplyr::arrange(
     desc(mean)
+  ) 
+```
+
+
+```{r}
+xgboost_best_models = folds_eval |> 
+  extract_workflow_set_result("basic_xgboost") |> 
+  show_best(metric = "roc_auc")|>
+  dplyr::filter(
+    .metric == "roc_auc"
   ) |> 
-  ggplot(
-    aes(
-      y = mean,
-      ymax = mean+std_err,
-      ymin = mean-std_err,
-      x = reorder(wflow_id, mean)
-    )
-  ) + 
-  geom_point() +
-  geom_errorbar() +
-  coord_cartesian(ylim = c(0.825, 0.9))
+  dplyr::arrange(
+    desc(mean)
+  ) 
 ```
 
 ```{r}
-tune_results_list |> 
-  extract_workflow_set_result("basic_glm") |> 
-  show_best(metric = "roc_auc")
+# =
+  tune_bayes(
+    xgboo
+  )
 ```
 
-```{r}
-# Examine the results
-tune_results_list %>%
-  extract_workflow_set_result("basic_glm") %>% # or other workflow identifier
-  show_best(metric = "roc_auc")
-```
-
-```{r}
-tune_results_list |> 
-  
-```
 
 ```{r}
 # Extract all workflow results at once
@@ -1068,6 +1102,72 @@ for (model_name in names(grid_list)) {
 ```{r}
 tune_results_list[[3]]
 ```
+
+```{r}
+# prepare a boostrap validation
+set.seed(123)
+boots = 
+  bootstraps(
+    analysis_data2,
+    times = 200,
+    apparent = TRUE
+)
+```
+
+```{r}
+boots_eval = 
+  model_set_options |> 
+  workflow_map(
+    "tune_grid",
+    resamples = folds,
+    metrics = metric_set(roc_auc, accuracy),
+    control = keep_pred,
+    seed = 1234,
+    verbose = TRUE
+  )
+```
+
+Code works but check if we can use workflow_map: <https://www.tmwr.org/workflow-sets>
+
+```{r}
+tune_results_list |> rank_results(select_best = T) |>
+  dplyr::filter(
+    .metric == "roc_auc"
+  ) |> 
+  dplyr::arrange(
+    desc(mean)
+  ) |> 
+  ggplot(
+    aes(
+      y = mean,
+      ymax = mean+std_err,
+      ymin = mean-std_err,
+      x = reorder(wflow_id, mean)
+    )
+  ) + 
+  geom_point() +
+  geom_errorbar() +
+  coord_cartesian(ylim = c(0.825, 0.9))
+```
+
+```{r}
+tune_results_list |> 
+  extract_workflow_set_result("basic_glm") |> 
+  show_best(metric = "roc_auc")
+```
+
+```{r}
+# Examine the results
+tune_results_list %>%
+  extract_workflow_set_result("basic_glm") %>% # or other workflow identifier
+  show_best(metric = "roc_auc")
+```
+
+```{r}
+tune_results_list |> 
+  
+```
+
 
 ```{r}
 tune_results_list |> 
