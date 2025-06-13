@@ -17,6 +17,8 @@ author:
 
 ## TODO
 
+-   Check whether we should/can apply to Bayesian tuning on all the workflows (not only XG Boost ?)
+
 -   Hyperparameter tuning via Bayesian approach
 
 -   Check if we can add variable selection procedures in the tuning grid (?)
