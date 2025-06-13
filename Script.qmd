@@ -842,6 +842,7 @@ models_set =
 models_set = 
   models_set |> 
   dplyr::filter(
+    wflow_id != "basic_xgboost", # to be changed later on
     wflow_id != "interact_xgboost",
     wflow_id != "spline_xgboost"
   )
@@ -851,15 +852,6 @@ models_set =
 models_set
 ```
 
-## Resampling
-
-```{r}
-# Set up 10-fold cross-validation on the training data (stratified by outcome class)
-set.seed(123)
-folds <- vfold_cv(analysis_data2, 
-                  v = 10, 
-                  strata = Survived)
-```
 
 ## Tuning grids
 
@@ -884,11 +876,6 @@ spline_net_grid <- expand_grid(penalty_vals, mix_vals, age_vals, fare_vals)
 ```
 
 ```{r}
-spline_net_grid
-xgboost_grid
-```
-
-```{r}
 xgboost_grid = 
   dials::parameters(
     min_n(),
@@ -900,15 +887,6 @@ xgboost_grid =
     size = 60
   )
 ```
-
-```{r}
-xgboost_mod
-```
-
-```{r}
-xgboost_grid
-```
-
 ```{r}
 grid_list <- list(
   base_glm = basic_grid,
@@ -921,23 +899,62 @@ grid_list <- list(
 )
 ```
 
+## Set options to specify grid per wflow_set_id
+
+```{r}
+model_set_options <- 
+  models_set %>%
+  option_add(grid = basic_grid, id = "basic_glm") %>%
+  option_add(grid = basic_net_grid, id = "basic_glm_net") %>%
+  #option_add(grid = xgboost_grid, id = "basic_xgboost") |> 
+  option_add(grid = basic_grid, id = "interact_glm") |> 
+  option_add(grid = basic_net_grid, id = "interact_glm_net") %>%
+  option_add(grid = spline_grid, id = "spline_glm") |> 
+  option_add(grid = spline_net_grid, id = "spline_glm_net") 
+```
+
+## Resampling evaluation methods
+
 ```{r}
 # setting up resampling control to save predictions and workflows during the tuning process
 keep_pred <- control_resamples(save_pred = TRUE, save_workflow = TRUE, verbose = F)
 ```
 
-## Workflow map to store hypertuning parameters
+```{r}
+# Set up 10-fold cross-validation on the training data (stratified by outcome class)
+set.seed(123)
+folds <- vfold_cv(analysis_data2, 
+                  v = 10, 
+                  strata = Survived)
+```
 
 ```{r}
-tune_results_list <- 
-  models_set %>%
-  option_add(grid = basic_grid, id = "basic_glm") %>%
-  option_add(grid = basic_net_grid, id = "basic_glm_net") %>%
-  option_add(grid = xgboost_grid, id = "basic_xgboost") |> 
-  option_add(grid = basic_grid, id = "interact_glm") |> 
-  option_add(grid = basic_net_grid, id = "interact_glm_net") %>%
-  option_add(grid = spline_grid, id = "splines_glm") |> 
-  option_add(grid = spline_net_grid, id = "splines_glm_net") %>%
+folds_eval = 
+  model_set_options |> 
+  workflow_map(
+    "tune_grid",
+    resamples = folds,
+    metrics = metric_set(roc_auc, accuracy),
+    control = keep_pred,
+    seed = 1234,
+    verbose = TRUE
+  )
+```
+
+```{r}
+# prepare a boostrap validation
+set.seed(123)
+boots = 
+  bootstraps(
+    analysis_data2,
+    times = 200,
+    apparent = TRUE
+)
+```
+
+```{r}
+boots_eval = 
+  model_set_options |> 
   workflow_map(
     "tune_grid",
     resamples = folds,
