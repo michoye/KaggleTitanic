@@ -17,9 +17,9 @@ author:
 
 ## TODO
 
--   Check whether we should/can apply to Bayesian tuning on all the workflows (not only XG Boost ?)
+-   Check if we can assess external validation performance of several models at the same time
 
--   Hyperparameter tuning via Bayesian approach
+-   Check if we can assess external validation on the best model vs. the top 50% model (median), and what's difference? is this more robust to external validation?
 
 -   Check if we can add variable selection procedures in the tuning grid (?)
 
@@ -75,6 +75,12 @@ author:
 -   Go to code section 'Continue here': Code works but check if we can use workflow_map: <https://www.tmwr.org/workflow-sets>
 -   Compare performance across variations (add interactions, splines) - work out workflow & sole current errors with 'tune_grid'.
 -   Compare log reg with glmnet vs. log reg with glm.
+
+### 2025-10-13
+
+-   we should not apply Bayesian tuning on all the workflows (only XG Boost!)
+-   Hyperparameter tuning via Bayesian approach
+
 
 ## Loading packages
 
@@ -794,12 +800,16 @@ preproc =
 
 ## Models
 
+### Logistic
+
 ```{r}
 # We define the model
 glm_mod <- 
   logistic_reg() |> 
   set_engine("glm")
 ```
+
+### GLM Net
 
 ```{r}
 # Define log regression model again but with different engine
@@ -960,12 +970,12 @@ model_set_options <-
   option_add(grid = spline_net_grid, id = "spline_glm_net") 
 ```
 
-## Resampling evaluation methods
-
 ```{r}
-# setting up resampling control to save predictions and workflows during the tuning process
-keep_pred <- control_resamples(save_pred = TRUE, save_workflow = TRUE, verbose = F)
+model_set_options
 ```
+
+
+## Resampling evaluation methods
 
 ```{r}
 # Set up 10-fold cross-validation on the training data (stratified by outcome class)
@@ -975,20 +985,38 @@ folds <- vfold_cv(analysis_data2,
                   strata = Survived)
 ```
 
+### Tuning grids
+
 ```{r}
-folds_eval_tune_grid = 
-  model_set_options |> 
-  workflow_map(
-    "tune_grid",
-    resamples = folds,
-    metrics = metric_set(roc_auc, accuracy),
-    control = keep_pred,
-    seed = 1234,
-    verbose = TRUE
-  )
+# setting up resampling control to save predictions and workflows during the tuning process
+keep_pred <- control_resamples(save_pred = TRUE, save_workflow = TRUE, verbose = F)
 ```
 
-### Tuning Mod Bayes
+```{r}
+# folds_eval_tune_grid =
+#   model_set_options |>
+#   workflow_map(
+#     "tune_grid",
+#     resamples = folds,
+#     metrics = metric_set(roc_auc, accuracy),
+#     control = keep_pred,
+#     seed = 1234,
+#     verbose = TRUE
+#   )
+# saveRDS(folds_eval_tune_grid, file = "temp/folds_eval_tune_grid.R")
+```
+
+```{r}
+folds_eval_tune_grid <- readRDS(file = "temp/folds_eval_tune_grid.R")
+```
+
+### Bayesian grids
+
+```{r}
+folds_eval_tune_grid$result[[3]]
+```
+
+
 
 ```{r}
 # setting up resampling control to save predictions and workflows during the tuning process
@@ -996,23 +1024,104 @@ control_bayes <- control_bayes(save_pred = TRUE, save_workflow = TRUE, verbose =
 ```
 
 ```{r}
+control_bayes
+```
+```{r}
+models_set
+```
+
+```{r}
+xgb_params = 
+  extract_parameter_set_dials(xgboost_mod) |> 
+  finalize(analysis_data2)
+```
+
+```{r}
+xgb_params
+```
+
+
+```{r}
+model_set_options_bayes = 
+ models_set |> 
+  dplyr::filter(
+    wflow_id %in% "basic_xgboost"
+  ) |> 
+  option_add(param_info = xgb_params, id = "basic_xgboost_bayes") # here, we should be careful and describe param_info as a parameter instead of previously defined grid items
+```
+
+
+```{r}
 set.seed(1234)
 
-folds_eval_tune_bayes = 
-  model_set_options |> 
+folds_eval_tune_bayes =
+  model_set_options_bayes |>
   workflow_map(
     "tune_bayes",
-    iter = 5,
+    iter = 10,
     resamples = folds,
     metrics = metric_set(roc_auc, accuracy),
     control = control_bayes,
+    initial = 10,
     seed = 1234,
     verbose = TRUE
+  )
+saveRDS(folds_eval_tune_bayes, file = "temp/folds_eval_bayes_grid.R")
+```
+
+```{r}
+# folds_eval_tune_bayes <- 
+# readRDS(file = "temp/folds_eval_bayes_grid.R")
+```
+
+```{r}
+folds_eval_tune_grid
+```
+
+```{r}
+folds_eval = folds_eval_tune_bayes |> 
+  dplyr::mutate(
+    wflow_id = "basic_xgboost_bayes"
+  ) |> 
+  dplyr::bind_rows(
+    folds_eval_tune_grid
   )
 ```
 
 ```{r}
 folds_eval
+```
+
+```{r}
+autoplot(
+   folds_eval,
+   rank_metric = "roc_auc",  
+   metric = "roc_auc",       
+   select_best = TRUE    
+) + 
+  geom_text(aes(y = mean - 0.05, label = wflow_id), angle = 90, hjust = 1) +
+  ylim(c(0.75, 0.93)) +
+  theme(legend.position = "none")
+```
+
+
+```{r}
+folds_eval_tune_grid |> 
+  extract_workflow_set_result("basic_xgboost") |> 
+  show_best(metric = "roc_auc")|>
+  dplyr::filter(
+    .metric == "roc_auc"
+  ) 
+```
+
+
+```{r}
+folds_eval_tune_bayes |> 
+  extract_workflow_set_result("basic_xgboost") |> 
+  show_best(metric = "roc_auc")|>
+  dplyr::filter(
+    .metric == "roc_auc"
+  ) 
 ```
 
 ```{r}
@@ -1029,7 +1138,7 @@ folds_eval |>
 
 
 ```{r}
-xgboost_best_models = folds_eval |> 
+xgboost_best_models = folds_eval_tune_grid |> 
   extract_workflow_set_result("basic_xgboost") |> 
   show_best(metric = "roc_auc")|>
   dplyr::filter(
@@ -1041,12 +1150,8 @@ xgboost_best_models = folds_eval |>
 ```
 
 ```{r}
-# =
-  tune_bayes(
-    xgboo
-  )
+xgboost_best_models
 ```
-
 
 ```{r}
 # Extract all workflow results at once
